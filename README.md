@@ -83,14 +83,18 @@ spans.
 
 ---
 
-## Music & whispers
+## Music, whispers & voices
 
-An original bouncy chiptune (square-wave lead, bouncing triangle bass, drums,
-and a little swing) plays while cooking, switching to slow warm pads during the
-sharpening wind-down. While the player is spelling, the music **whispers the
-target word** every few seconds — ambient rehearsal of the spelling target
-through the auditory channel. Toggle music on the pause menu (**Start →
-Y/Triangle**).
+**Six original chiptunes** rotate night by night — from the bouncy
+"Block Party Bounce" to the sneaky "Midnight Snack" — all switching to slow
+warm pads during the sharpening wind-down. While the player is spelling, the
+music **whispers the target word** once every 30 seconds — gentle ambient
+rehearsal, never nagging.
+
+The chef speaks with one of two voices, switchable on the pause menu: the
+**friendly helper** or **fiery Chef Blocksay** — a deep, quick, very British
+head-chef delivery (same kind words, much more drama). Pause menu (**Start**):
+**Y** toggles music, **X** toggles the voice.
 
 ## The game loop (one "day" ≈ 10–15 minutes)
 
@@ -104,7 +108,9 @@ Y/Triangle**).
      chosen chef standing at the board swinging the knife on every cut.
 3. **Sharpening wind-down** — slow, breathing-paced whetstone strokes.
 4. **Results** — stars, Knife Trust, possible knife unlock, and a **word
-   recap**: every word from tonight, spelled correctly, one more look.
+   recap**: every word from tonight, spelled correctly, one more look. The
+   final order of every night is the **⭐ Daily Special** — double trust on
+   its spelling, a built-in finale.
 5. **Build** — place an earned decoration block in a persistent restaurant.
    **Every block is a real kitchen upgrade**: the Potted Plant grants an extra
    Chef's Glance, the Old Clock keeps words on screen longer, the Kitchen Cat
@@ -115,10 +121,16 @@ Y/Triangle**).
 
 Other touches: a visual countdown bar shows exactly how long the word stays on
 screen (visible time, an ADHD support), consecutive first-try spellings build
-**streaks** with confetti and bonus trust, and every served dish gets a
-reaction from a blocky customer (Miner Mo, Builder Bea, Redstone Rex…). The
-sharpening wind-down shows the player's actual trust-tier knife on the
-whetstone, edge gleaming brighter with every breathing-paced stroke.
+**streaks** with confetti, bonus trust, and a tracked **personal best**, and
+every served dish gets a reaction from a blocky customer (Miner Mo, Builder
+Bea, Redstone Rex…). The sharpening wind-down shows the player's actual
+trust-tier knife on the whetstone, edge gleaming brighter with every
+breathing-paced stroke. During spelling the dish name is deliberately hidden —
+"Vanilla Milkshake" on screen would spell M-I-L-K for you.
+
+**The Recipe Book** (B on the title screen) collects every word ever spelled
+first-try as a mastered recipe stamp, grade by grade — locked recipes show as
+mystery cards to hunt down. 170+ food words across the seven grade bands.
 
 The final order is announced as **"LAST ORDER OF THE NIGHT"** — a built-in
 transition warning for kids who struggle to stop a preferred activity.

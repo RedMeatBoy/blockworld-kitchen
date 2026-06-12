@@ -10,11 +10,13 @@ import { Save } from '../save.js';
 import { pickMenu, gradeParams, gradeLabel, computePerks, describePerks } from '../data/words.js';
 import { clearScene, el, hintBar, renderHud } from '../ui.js';
 import { paintBackground } from '../background.js';
+import { Music } from '../music.js';
 
 export const menuScene = {
   enter() {
     paintBackground('dining');
     const d = Save.data;
+    Music.setSong(d.day - 1);
     this.menu = pickMenu(d.grade, d.wordTier, gradeParams(d.grade).orders);
     renderHud({});
 
@@ -43,6 +45,7 @@ export const menuScene = {
     root.append(stack);
     root.append(hintBar([
       ['a', 'Open the kitchen'],
+      ['b', 'Back to start (change grade/chef)'],
       ['x', 'Hear the menu'],
     ]));
 
@@ -55,6 +58,7 @@ export const menuScene = {
   },
 
   update() {
+    if (Input.pressed('b')) { Sfx.back(); go('title'); return; }
     if (Input.pressed('x')) { Sfx.move(); this.speakMenu(); }
     if (Input.pressed('a')) {
       Sfx.ding();

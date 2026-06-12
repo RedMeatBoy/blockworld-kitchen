@@ -78,11 +78,22 @@ try {
   await tap(page, 'ArrowUp');
   await textVisible(page, 'CHEF MAX', 4000);
   console.log('✓ chef switching works');
+
+  // --- recipe book (B from title) ---
+  await tap(page, 'Backspace');
+  await textVisible(page, 'RECIPE BOOK', 5000);
+  await tap(page, 'Backspace');
+  await textVisible(page, 'BLOCKWORLD', 5000);
+  console.log('✓ recipe book opens and closes');
   await tap(page, 'Enter');
 
-  // --- menu preview ---
+  // --- menu preview + back-to-title ---
   await textVisible(page, "TONIGHT'S MENU");
-  console.log('✓ menu preview');
+  await tap(page, 'Backspace'); // back to title to change grade if needed
+  await textVisible(page, 'BLOCKWORLD', 5000);
+  await tap(page, 'Enter');     // and forward again
+  await textVisible(page, "TONIGHT'S MENU", 5000);
+  console.log('✓ menu preview + back-to-title works');
   await tap(page, 'Enter');
 
   // --- service: 4 orders ---
@@ -100,6 +111,11 @@ try {
 
     // wait for spell phase, then type the word
     await textVisible(page, 'SPELL IT', 8000);
+    const dishLeak = await page.evaluate(() => {
+      const sub = [...document.querySelectorAll('.subtitle')].map((n) => n.textContent).join(' ');
+      return /milkshake|crumble|soup|bites|bowl|sliders|tarts|cobs|buns|slice|tacos|toast|cakes/i.test(sub);
+    });
+    if (dishLeak) throw new Error('dish name visible during spelling (anti-cheat broken)');
     await wait(300);
     for (const ch of word) {
       await tap(page, `Key${ch}`);

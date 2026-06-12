@@ -68,7 +68,16 @@ export const Sfx = {
 };
 
 // ---------- chef voice ----------
+// Two characters share the same lines but deliver them differently:
+//   'friendly' — the warm helper voice (the original)
+//   'fiery'    — Chef Blocksay in full head-chef mode: deep, quick, British
 
+const VOICE_PROFILES = {
+  friendly: { rateMul: 1.0, pitchMul: 1.0 },
+  fiery:    { rateMul: 1.1, pitchMul: 0.72 },
+};
+
+let profileName = 'friendly';
 let voice = null;
 let voicesReady = false;
 
@@ -76,11 +85,25 @@ function pickVoice() {
   const voices = speechSynthesis.getVoices();
   if (!voices.length) return;
   voicesReady = true;
-  voice =
-    voices.find((v) => /en[-_](GB|UK)/i.test(v.lang) && /male|daniel|arthur/i.test(v.name)) ||
-    voices.find((v) => /en[-_]GB/i.test(v.lang)) ||
-    voices.find((v) => /^en/i.test(v.lang)) ||
-    voices[0];
+  if (profileName === 'fiery') {
+    voice =
+      voices.find((v) => /en[-_](GB|UK)/i.test(v.lang) && /male|daniel|arthur|george|ryan/i.test(v.name)) ||
+      voices.find((v) => /en[-_](GB|UK)/i.test(v.lang)) ||
+      voices.find((v) => /^en/i.test(v.lang) && /male|david|mark/i.test(v.name)) ||
+      voices.find((v) => /^en/i.test(v.lang)) ||
+      voices[0];
+  } else {
+    voice =
+      voices.find((v) => /en[-_](GB|UK)/i.test(v.lang) && /male|daniel|arthur/i.test(v.name)) ||
+      voices.find((v) => /en[-_]GB/i.test(v.lang)) ||
+      voices.find((v) => /^en/i.test(v.lang)) ||
+      voices[0];
+  }
+}
+
+export function setVoiceProfile(name) {
+  profileName = VOICE_PROFILES[name] ? name : 'friendly';
+  pickVoice();
 }
 
 if ('speechSynthesis' in window) {
@@ -92,10 +115,11 @@ export function speak(text, { rate = 0.95, pitch = 0.9, interrupt = true, volume
   if (!('speechSynthesis' in window)) return;
   if (!voicesReady) pickVoice();
   if (interrupt) speechSynthesis.cancel();
+  const prof = VOICE_PROFILES[profileName];
   const utter = new SpeechSynthesisUtterance(text);
   if (voice) utter.voice = voice;
-  utter.rate = rate;
-  utter.pitch = pitch;
+  utter.rate = Math.min(2, rate * prof.rateMul);
+  utter.pitch = Math.max(0.1, pitch * prof.pitchMul);
   utter.volume = volume;
   speechSynthesis.speak(utter);
 }

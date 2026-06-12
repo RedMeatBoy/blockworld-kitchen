@@ -8,6 +8,8 @@ const DEFAULTS = {
   grade: 2,              // 0 (K)..6, picked on the title screen (Alberta curriculum bands)
   avatar: 'm',           // 'm' (Chef Max) | 'f' (Chef Maya)
   music: true,
+  voice: 'friendly',     // 'friendly' | 'fiery' (Chef Blocksay)
+  mastered: {},          // word → first-try count (Recipe Book)
   wordTier: 0,           // 0..2 within the grade band, adapts with spelling success
   decorations: [],       // { x, y, emoji }
   pendingDecoChoices: null,
@@ -26,6 +28,7 @@ const DEFAULTS = {
     noCutTotal: 0,
     noCutHeld: 0,
     sharpenSessions: 0,
+    bestStreak: 0,
   },
   // rolling record of recent first-try results, drives word tier adaptation
   recentSpelling: [],

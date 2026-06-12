@@ -2,7 +2,7 @@ import { Input } from './input.js';
 import { registerScenes, go, updateScene, sceneName } from './flow.js';
 import { Save } from './save.js';
 import { el, $overlay, updateControllerStatus } from './ui.js';
-import { unlockAudio, stopSpeech } from './audio.js';
+import { unlockAudio, stopSpeech, setVoiceProfile, speak } from './audio.js';
 import { Music } from './music.js';
 import { gradeLabel } from './data/words.js';
 
@@ -12,8 +12,10 @@ import { serviceScene } from './scenes/service.js';
 import { sharpenScene } from './scenes/sharpen.js';
 import { resultsScene } from './scenes/results.js';
 import { buildScene } from './scenes/build.js';
+import { bookScene } from './scenes/book.js';
 
 Save.load();
+setVoiceProfile(Save.data.voice);
 
 registerScenes({
   title: titleScene,
@@ -22,6 +24,7 @@ registerScenes({
   sharpen: sharpenScene,
   results: resultsScene,
   build: buildScene,
+  book: bookScene,
 });
 
 // ---------- pause + parent dashboard overlays ----------
@@ -39,10 +42,13 @@ function renderPause() {
   node.innerHTML = '';
   const panel = el('div', 'overlay-panel');
   panel.append(el('h2', '', '⏸ KITCHEN PAUSED'));
+  const fiery = Save.data.voice === 'fiery';
   panel.append(el('div', 'subtitle',
     'Take a breath, chef.<br><br>' +
     `🎵 MUSIC: <b style="color:${Save.data.music ? '#6fd96f' : '#e8604f'}">${Save.data.music ? 'ON' : 'OFF'}</b>` +
     ' &nbsp;—&nbsp; press Y to switch<br><br>' +
+    `🗣 VOICE: <b style="color:#f5c84b">${fiery ? 'FIERY CHEF BLOCKSAY' : 'FRIENDLY HELPER'}</b>` +
+    ' &nbsp;—&nbsp; press X to switch<br><br>' +
     'PRESS &nbsp;A&nbsp; TO KEEP COOKING'));
   node.append(panel);
 }
@@ -116,6 +122,14 @@ function frame(now) {
       Save.data.music = !Save.data.music;
       Save.save();
       if (Save.data.music) Music.start(); else Music.stop();
+      renderPause();
+    } else if (overlayMode === 'pause' && Input.pressed('x')) {
+      Save.data.voice = Save.data.voice === 'fiery' ? 'friendly' : 'fiery';
+      Save.save();
+      setVoiceProfile(Save.data.voice);
+      speak(Save.data.voice === 'fiery'
+        ? 'RIGHT! Chef Blocksay here. Let us COOK, yes chef?!'
+        : 'Hello chef! Let\'s cook together.');
       renderPause();
     } else if (overlayMode === 'pause' && (Input.pressed('a') || Input.pressed('start'))) closeOverlay();
     else if (overlayMode === 'stats' && (Input.pressed('select') || Input.pressed('b'))) closeOverlay();

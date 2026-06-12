@@ -12,26 +12,105 @@ import { getAudioContext, speak } from './audio.js';
 const C4 = 261.63;
 const note = (semi, oct = 0) => C4 * Math.pow(2, semi / 12 + oct);
 
-// ---- upbeat: original bouncy tune in C (4-bar phrases, 8th-note steps) ----
-const TEMPO = 152;
-const STEP = 60 / TEMPO / 2;            // one 8th note
-const SEG_STEPS = 32;                   // 4 bars
-const SWING = STEP * 0.24;              // bounce on the off-beats
+// ---- upbeat: six original tunes, rotated by in-game day ----
+// Each song: tempo, lead wave, two 4-bar lead sections (A/B) in 8th-note
+// steps [semitone offset from C5 | null = rest, length], bass roots per bar.
+const SEG_STEPS = 32; // 4 bars of 8 eighth-notes
 
-// [semitone offset from C5 | null = rest, length in steps]
-const LEAD_A = [
-  [4, 1], [7, 1], [9, 1], [7, 1], [4, 1], [7, 1], [12, 2],
-  [9, 1], [7, 1], [4, 1], [7, 1], [9, 2], [null, 2],
-  [2, 1], [5, 1], [7, 1], [5, 1], [2, 1], [5, 1], [11, 2],
-  [12, 1], [11, 1], [9, 1], [7, 1], [4, 2], [null, 2],
+const SONGS = [
+  { // 1. "Block Party Bounce" — the original
+    name: 'Block Party Bounce', tempo: 152, wave: 'square', bass: [0, 5, 7, 0],
+    leadA: [
+      [4, 1], [7, 1], [9, 1], [7, 1], [4, 1], [7, 1], [12, 2],
+      [9, 1], [7, 1], [4, 1], [7, 1], [9, 2], [null, 2],
+      [2, 1], [5, 1], [7, 1], [5, 1], [2, 1], [5, 1], [11, 2],
+      [12, 1], [11, 1], [9, 1], [7, 1], [4, 2], [null, 2],
+    ],
+    leadB: [
+      [12, 1], [null, 1], [12, 1], [null, 1], [9, 1], [12, 1], [14, 2],
+      [16, 2], [14, 1], [12, 1], [9, 1], [7, 1], [null, 2],
+      [5, 1], [9, 1], [12, 1], [9, 1], [5, 1], [9, 1], [14, 2],
+      [12, 2], [9, 1], [7, 1], [4, 2], [null, 2],
+    ],
+  },
+  { // 2. minor-key kitchen funk
+    name: 'Pepper Groove', tempo: 140, wave: 'square', bass: [9, 5, 7, 9],
+    leadA: [
+      [9, 1], [null, 1], [9, 1], [12, 1], [null, 1], [12, 1], [14, 2],
+      [16, 1], [14, 1], [12, 1], [9, 1], [12, 2], [null, 2],
+      [7, 1], [null, 1], [7, 1], [10, 1], [null, 1], [10, 1], [12, 2],
+      [14, 1], [12, 1], [10, 1], [7, 1], [9, 2], [null, 2],
+    ],
+    leadB: [
+      [16, 2], [14, 1], [12, 1], [16, 2], [14, 1], [12, 1],
+      [9, 1], [10, 1], [12, 1], [14, 1], [16, 2], [null, 2],
+      [12, 2], [10, 1], [9, 1], [12, 2], [10, 1], [9, 1],
+      [7, 1], [9, 1], [10, 1], [12, 1], [9, 2], [null, 2],
+    ],
+  },
+  { // 3. gentle pentatonic skipping tune
+    name: 'Sunny Side Up', tempo: 162, wave: 'triangle', bass: [0, 5, 7, 0],
+    leadA: [
+      [0, 1], [2, 1], [4, 1], [7, 1], [4, 1], [2, 1], [0, 2],
+      [7, 1], [9, 1], [7, 1], [4, 1], [2, 2], [null, 2],
+      [0, 1], [2, 1], [4, 1], [7, 1], [9, 1], [7, 1], [12, 2],
+      [9, 1], [7, 1], [4, 1], [2, 1], [0, 2], [null, 2],
+    ],
+    leadB: [
+      [12, 2], [9, 1], [7, 1], [9, 2], [7, 1], [4, 1],
+      [2, 1], [4, 1], [7, 1], [9, 1], [12, 2], [null, 2],
+      [9, 1], [12, 1], [14, 1], [12, 1], [9, 1], [7, 1], [4, 2],
+      [2, 1], [4, 2], [2, 1], [0, 2], [null, 2],
+    ],
+  },
+  { // 4. sparkly dessert-cart waltz-ish shimmer
+    name: 'Diamond Dessert', tempo: 146, wave: 'square', bass: [5, 2, 7, 5],
+    leadA: [
+      [5, 1], [9, 1], [12, 1], [9, 1], [5, 1], [9, 1], [16, 2],
+      [14, 1], [12, 1], [9, 1], [5, 1], [7, 2], [null, 2],
+      [4, 1], [7, 1], [11, 1], [7, 1], [4, 1], [7, 1], [14, 2],
+      [12, 1], [11, 1], [9, 1], [7, 1], [5, 2], [null, 2],
+    ],
+    leadB: [
+      [17, 2], [16, 1], [14, 1], [12, 2], [9, 1], [7, 1],
+      [9, 1], [12, 1], [14, 1], [16, 1], [17, 2], [null, 2],
+      [16, 1], [14, 1], [12, 1], [11, 1], [12, 2], [9, 2],
+      [7, 1], [9, 1], [11, 1], [12, 1], [14, 2], [null, 2],
+    ],
+  },
+  { // 5. sneaky tip-toe minor groove
+    name: 'Midnight Snack', tempo: 128, wave: 'triangle', bass: [0, 8, 10, 0],
+    leadA: [
+      [0, 1], [3, 1], [7, 1], [3, 1], [0, 1], [3, 1], [8, 2],
+      [7, 1], [5, 1], [3, 1], [0, 1], [3, 2], [null, 2],
+      [-2, 1], [2, 1], [5, 1], [2, 1], [-2, 1], [2, 1], [7, 2],
+      [5, 1], [3, 1], [2, 1], [0, 1], [3, 2], [null, 2],
+    ],
+    leadB: [
+      [12, 1], [null, 1], [10, 1], [null, 1], [8, 1], [7, 1], [8, 2],
+      [7, 1], [5, 1], [3, 1], [5, 1], [7, 2], [null, 2],
+      [8, 1], [7, 1], [5, 1], [3, 1], [5, 1], [3, 1], [2, 2],
+      [0, 1], [2, 1], [3, 1], [5, 1], [0, 2], [null, 2],
+    ],
+  },
+  { // 6. fastest, brightest — for big nights
+    name: 'Full Steam Kitchen', tempo: 170, wave: 'square', bass: [7, 5, 0, 7],
+    leadA: [
+      [7, 1], [7, 1], [null, 1], [7, 1], [4, 1], [7, 1], [9, 2],
+      [12, 1], [null, 1], [9, 1], [null, 1], [7, 1], [4, 1], [5, 2],
+      [5, 1], [5, 1], [null, 1], [5, 1], [2, 1], [5, 1], [7, 2],
+      [9, 1], [7, 1], [5, 1], [4, 1], [0, 2], [null, 2],
+    ],
+    leadB: [
+      [12, 1], [12, 1], [null, 1], [12, 1], [14, 1], [12, 1], [9, 2],
+      [7, 1], [9, 1], [12, 1], [14, 1], [16, 2], [null, 2],
+      [14, 1], [14, 1], [null, 1], [14, 1], [12, 1], [9, 1], [7, 2],
+      [4, 1], [5, 1], [7, 1], [9, 1], [7, 2], [null, 2],
+    ],
+  },
 ];
-const LEAD_B = [
-  [12, 1], [null, 1], [12, 1], [null, 1], [9, 1], [12, 1], [14, 2],
-  [16, 2], [14, 1], [12, 1], [9, 1], [7, 1], [null, 2],
-  [5, 1], [9, 1], [12, 1], [9, 1], [5, 1], [9, 1], [14, 2],
-  [12, 2], [9, 1], [7, 1], [4, 2], [null, 2],
-];
-const BASS_ROOTS = [0, 5, 7, 0];        // C F G C, one per bar
+
+let song = SONGS[0];
 
 // ---- calm: warm pad loop (Fmaj7 → Am7 → Dm7 → B♭maj7) ----
 const CALM_BAR = 3.2;
@@ -92,21 +171,22 @@ function noiseHit(ctx, out, { t, dur, vol, freq }) {
   src.start(t);
 }
 
-const stepTime = (when, step) => when + step * STEP + (step % 2 ? SWING : 0);
-
 function scheduleUpbeatSegment(ctx, when) {
   const out = ensureMaster(ctx);
-  const lead = segIndex % 2 ? LEAD_B : LEAD_A;
+  const STEP = 60 / song.tempo / 2;
+  const SWING = STEP * 0.24;
+  const stepTime = (base, step) => base + step * STEP + (step % 2 ? SWING : 0);
+  const lead = segIndex % 2 ? song.leadB : song.leadA;
 
-  // lead melody — bright square wave
+  // lead melody
   let step = 0;
   for (const [semi, len] of lead) {
     if (semi !== null) {
       const t = stepTime(when, step);
-      osc(ctx, out, { type: 'square', freq: note(semi, 0), t, dur: len * STEP * 0.85, vol: 0.042 });
+      osc(ctx, out, { type: song.wave, freq: note(semi, 0), t, dur: len * STEP * 0.85, vol: song.wave === 'square' ? 0.042 : 0.06 });
       // sparkle: same note an octave up, very quiet, every other phrase
       if (segIndex % 2) {
-        osc(ctx, out, { type: 'square', freq: note(semi, 1), t, dur: len * STEP * 0.5, vol: 0.012, decay: true });
+        osc(ctx, out, { type: song.wave, freq: note(semi, 1), t, dur: len * STEP * 0.5, vol: 0.012, decay: true });
       }
     }
     step += len;
@@ -114,7 +194,7 @@ function scheduleUpbeatSegment(ctx, when) {
 
   // bouncing bass — root / fifth alternating
   for (let bar = 0; bar < 4; bar++) {
-    const root = BASS_ROOTS[bar];
+    const root = song.bass[bar];
     for (let s = 0; s < 8; s++) {
       const t = stepTime(when, bar * 8 + s);
       const semi = s % 2 ? root - 17 : root - 24; // fifth above low root
@@ -140,6 +220,7 @@ function scheduleUpbeatSegment(ctx, when) {
       o.stop(t + 0.2);
     }
   }
+  return SEG_STEPS * STEP + 0; // segment duration
 }
 
 function scheduleCalmBar(ctx, when) {
@@ -177,8 +258,8 @@ function tick() {
         nextTime = when + CALM_BAR;
         calmBarIndex++;
       } else {
-        scheduleUpbeatSegment(ctx, when);
-        nextTime = when + SEG_STEPS * STEP;
+        const dur = scheduleUpbeatSegment(ctx, when);
+        nextTime = when + dur;
         segIndex++;
       }
     }
@@ -187,6 +268,21 @@ function tick() {
 
 export const Music = {
   isPlaying() { return playing; },
+  songCount: SONGS.length,
+
+  /** Pick the night's tune (rotates with the in-game day). */
+  setSong(index) {
+    const next = SONGS[((index % SONGS.length) + SONGS.length) % SONGS.length];
+    if (next === song) return;
+    song = next;
+    segIndex = 0;
+    if (playing) {
+      try {
+        const ctx = getAudioContext();
+        if (ctx) nextTime = Math.min(nextTime, ctx.currentTime + 0.4);
+      } catch { /* ignore */ }
+    }
+  },
 
   /** 'upbeat' for cooking, 'calm' for the sharpening wind-down. */
   setMood(next) {

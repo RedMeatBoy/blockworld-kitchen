@@ -19,9 +19,11 @@ export const titleScene = {
 
     const d = Save.data;
     const knife = currentKnife(d.trust);
+    const best = d.stats?.bestStreak || 0;
     stack.append(el('div', 'subtitle',
       d.day > 1
-        ? `Day ${d.day} &nbsp;·&nbsp; Knife Trust ${d.trust} &nbsp;·&nbsp; ${knife.emoji} ${knife.name}`
+        ? `Day ${d.day} &nbsp;·&nbsp; Knife Trust ${d.trust} &nbsp;·&nbsp; ${knife.emoji} ${knife.name}` +
+          (best >= 2 ? ` &nbsp;·&nbsp; 🔥 Best streak ${best}` : '')
         : 'A new restaurant opens today.<br>The kitchen needs a chef with steady hands.'));
 
     const row = el('div');
@@ -48,6 +50,7 @@ export const titleScene = {
 
     root.append(hintBar([
       ['a', 'Start shift'],
+      ['b', 'Recipe book'],
       ['dpad', '◄► grade · ▲▼ chef'],
       ['select', 'Parent stats'],
     ]));
@@ -100,6 +103,12 @@ export const titleScene = {
     const typedX = Input.takeLetters().includes('X');
     if (Input.pressed('x') || Input.pressed('y') || typedX || Input.nav('up') || Input.nav('down')) {
       this.switchChef();
+    }
+    if (Input.pressed('b')) {
+      unlockAudio();
+      Sfx.select();
+      go('book');
+      return;
     }
     if (Input.pressed('a')) {
       unlockAudio();

@@ -36,7 +36,7 @@ export const serviceScene = {
     this.trustAtStart = Save.data.trust;
     this.results = []; // per-order: { word, firstTry, glanceUsed, emoji }
     this.streak = 0;   // consecutive first-try spellings
-    this.whisperTimer = 0;
+    this.whisperTimer = 30;
     this.startOrder();
   },
 
@@ -112,7 +112,8 @@ export const serviceScene = {
     this.phase = 'spell';
     const root = clearScene();
     const stack = el('div', 'center-stack');
-    stack.append(el('div', 'subtitle', `SPELL IT FOR THE TICKET: ${this.order.dish.toUpperCase()}`));
+    // deliberately NOT the dish name — "Vanilla Milkshake" would spell MILK for you
+    stack.append(el('div', 'subtitle', `SPELL IT FOR THE TICKET! ${this.order.emoji}`));
 
     this.tilesNode = el('div', 'word-tiles');
     stack.append(this.tilesNode);
@@ -189,6 +190,8 @@ export const serviceScene = {
       let pts = firstTry ? (this.glanceUsedThisWord ? 3 : 5) : 1;
       let line = PRAISE_SPELLING[Math.floor(Math.random() * PRAISE_SPELLING.length)];
       if (firstTry) {
+        Save.data.mastered = Save.data.mastered || {};
+        Save.data.mastered[word] = (Save.data.mastered[word] || 0) + 1;
         this.streak++;
         if (this.streak >= 2) {
           const bonus = this.streak * 2 + this.perks.streak;
@@ -196,9 +199,21 @@ export const serviceScene = {
           line = `STREAK x${this.streak}! ${line}`;
           confetti(30 + this.streak * 15);
           Sfx.fanfare();
+          if (this.streak > (Save.data.stats.bestStreak || 0)) {
+            Save.data.stats.bestStreak = this.streak;
+            if (this.streak >= 3) {
+              line = `🏆 NEW PERSONAL BEST STREAK! ${line}`;
+              confetti(120);
+            }
+          }
         }
       } else {
         this.streak = 0;
+      }
+      // the last order is the DAILY SPECIAL — double trust on the spelling
+      if (this.orderIndex === this.menu.length - 1) {
+        pts *= 2;
+        line = `⭐ DAILY SPECIAL — double trust! ${line}`;
       }
       Save.addTrust(pts);
       this.hud();
@@ -360,7 +375,7 @@ export const serviceScene = {
         // the music murmurs the target word every few seconds
         this.whisperTimer -= dt;
         if (this.whisperTimer <= 0) {
-          this.whisperTimer = 6.5 + Math.random() * 2;
+          this.whisperTimer = 30;
           if (Save.data.music) Music.whisper(this.order.word);
         }
         // direct keyboard letters (growth path)
