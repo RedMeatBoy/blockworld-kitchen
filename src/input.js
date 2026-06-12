@@ -1,9 +1,28 @@
 // Gamepad + keyboard input abstraction.
-// Standard mapping covers Xbox Series X and PS5 DualSense in Chrome/Edge/Firefox:
-//   buttons: 0=A/Cross 1=B/Circle 2=X/Square 3=Y/Triangle 8=Select/Share 9=Start/Options
-//   dpad: 12=up 13=down 14=left 15=right; axes 0/1 = left stick, 2/3 = right stick
+//
+// Gamepads come in two flavours:
+//  - mapping === 'standard': the W3C layout (Xbox/PS over USB, most cases)
+//      buttons: 0=A/Cross 1=B/Circle 2=X/Square 3=Y/Triangle
+//               8=Select/View 9=Start/Menu, dpad 12-15
+//  - mapping === '' (non-standard): common for Xbox controllers over
+//      BLUETOOTH — face buttons can be shifted (X=3, Y=4) and the d-pad is
+//      often reported as a "hat" on axes[9] instead of buttons 12-15.
+//      We decode both so the game works either way.
 
-const BTN = { a: 0, b: 1, x: 2, y: 3, select: 8, start: 9, up: 12, down: 13, left: 14, right: 15 };
+const BTN_STANDARD = {
+  a: [0], b: [1], x: [2], y: [3],
+  select: [8], start: [9],
+  up: [12], down: [13], left: [14], right: [15],
+};
+
+// Compat table for non-standard pads: accept both common layouts.
+// ('x' includes 3 because BT pads put X there; 'y' is 4-only to avoid
+// double-firing x+y on pads where 3 is actually Y.)
+const BTN_COMPAT = {
+  a: [0], b: [1], x: [2, 3], y: [4],
+  select: [8, 10], start: [9, 11],
+  up: [12], down: [13], left: [14], right: [15],
+};
 
 // Keyboard fallback (letters A-Z always type directly — never bound to actions)
 const KEY_MAP = {
@@ -20,6 +39,22 @@ const DEADZONE = 0.45;
 const NAV_DELAY = 0.34;   // seconds before key-repeat kicks in
 const NAV_REPEAT = 0.15;
 
+// 8-way hat axis decode: -1=up, then clockwise in steps of 2/7; idle ≈ 1.286
+const HAT_DIRS = [
+  ['up'], ['up', 'right'], ['right'], ['down', 'right'],
+  ['down'], ['down', 'left'], ['left'], ['up', 'left'],
+];
+
+function hatToDirs(v) {
+  if (typeof v !== 'number' || v < -1.01 || v > 1.01) return null;
+  const idx = Math.round((v + 1) / (2 / 7));
+  if (idx < 0 || idx > 7) return null;
+  // reject values that aren't close to a real detent (noise / idle clamp)
+  const detent = -1 + idx * (2 / 7);
+  if (Math.abs(v - detent) > 0.08) return null;
+  return HAT_DIRS[idx];
+}
+
 class InputManager {
   constructor() {
     this.down = new Set();        // currently held (merged pad+kb)
@@ -29,6 +64,7 @@ class InputManager {
     this.navTimers = { up: 0, down: 0, left: 0, right: 0 };
     this.navFired = { up: false, down: false, left: false, right: false };
     this.padConnected = false;
+    this.padMapping = null;       // 'standard' | 'compat' | null
     this.rightStickY = 0;
     this.leftStickMag = 0;
 
@@ -44,7 +80,8 @@ class InputManager {
     });
     window.addEventListener('gamepadconnected', () => { this.padConnected = true; });
     window.addEventListener('gamepaddisconnected', () => {
-      this.padConnected = [...navigator.getGamepads()].some(Boolean);
+      this.padConnected = [...(navigator.getGamepads?.() || [])].some((p) => p && p.connected);
+      if (!this.padConnected) this.padMapping = null;
     });
   }
 
@@ -54,22 +91,42 @@ class InputManager {
     this.rightStickY = 0;
     this.leftStickMag = 0;
 
+    let sawPad = false;
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];
     for (const pad of pads) {
       if (!pad || !pad.connected) continue;
-      this.padConnected = true;
-      for (const [name, idx] of Object.entries(BTN)) {
-        if (pad.buttons[idx]?.pressed) this.down.add(name);
+      sawPad = true;
+      const standard = pad.mapping === 'standard';
+      this.padMapping = standard ? 'standard' : 'compat';
+
+      const table = standard ? BTN_STANDARD : BTN_COMPAT;
+      for (const [name, indices] of Object.entries(table)) {
+        for (const idx of indices) {
+          const btn = pad.buttons[idx];
+          if (btn && (btn.pressed || btn.value > 0.5)) { this.down.add(name); break; }
+        }
       }
+
+      // left stick → directions
       const lx = pad.axes[0] ?? 0, ly = pad.axes[1] ?? 0;
       if (lx < -DEADZONE) this.down.add('left');
       if (lx > DEADZONE) this.down.add('right');
       if (ly < -DEADZONE) this.down.add('up');
       if (ly > DEADZONE) this.down.add('down');
       this.leftStickMag = Math.max(this.leftStickMag, Math.hypot(lx, ly));
+
+      // non-standard pads often report the d-pad as a hat axis (usually 9)
+      if (!standard) {
+        for (const hatAxis of [9, 7]) {
+          const dirs = hatToDirs(pad.axes[hatAxis]);
+          if (dirs) { dirs.forEach((d) => this.down.add(d)); break; }
+        }
+      }
+
       const ry = pad.axes[3] ?? 0;
       if (Math.abs(ry) > 0.25) this.rightStickY = ry;
     }
+    if (sawPad) this.padConnected = true;
 
     // directional repeat timers
     for (const dir of ['up', 'down', 'left', 'right']) {

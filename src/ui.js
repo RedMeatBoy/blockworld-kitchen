@@ -112,17 +112,19 @@ export function renderHud({ orders = null, orderIndex = 0, glances = null } = {}
 export function clearHud() { $hud().innerHTML = ''; }
 
 let statusFadeTimer = null;
-export function updateControllerStatus(connected) {
+export function updateControllerStatus(connected, mapping = null) {
   let node = document.querySelector('.controller-status');
   if (!node) {
     node = el('div', 'controller-status');
     document.getElementById('app').append(node);
   }
   node.className = 'controller-status' + (connected ? ' on' : '');
-  node.textContent = connected ? '🎮 controller connected!' : '🎮 press a button on your controller';
+  node.textContent = connected
+    ? `🎮 controller connected!${mapping === 'compat' ? ' (bluetooth compat mode)' : ''}`
+    : '🎮 press a button on your controller';
   clearTimeout(statusFadeTimer);
   if (connected) {
-    statusFadeTimer = setTimeout(() => node.classList.add('fade'), 4000);
+    statusFadeTimer = setTimeout(() => node.classList.add('fade'), 5000);
   }
 }
 

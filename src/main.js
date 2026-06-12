@@ -108,7 +108,7 @@ function frame(now) {
 
   if (Input.padConnected !== padWasConnected) {
     padWasConnected = Input.padConnected;
-    updateControllerStatus(padWasConnected);
+    updateControllerStatus(padWasConnected, Input.padMapping);
   }
 
   if (overlayMode) {
@@ -122,7 +122,10 @@ function frame(now) {
   } else {
     if (Input.pressed('start') && sceneName() !== 'title') { unlockAudio(); openPause(); }
     else if (Input.pressed('select')) { unlockAudio(); openStats(); }
-    else updateScene(dt);
+    else {
+      // one bad frame must never freeze the whole game for a kid mid-session
+      try { updateScene(dt); } catch (err) { console.error('scene update error:', err); }
+    }
   }
 
   requestAnimationFrame(frame);
