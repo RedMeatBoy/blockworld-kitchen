@@ -15,6 +15,10 @@ required — and that's deliberate: spelling happens on a controller-navigated
 QWERTY grid (like console name entry), which quietly teaches keyboard layout
 for the day the player graduates to typing.
 
+Everything is generated in code — pixel-art kitchen and dining-room
+backgrounds, the selectable chef avatars (Chef Max / Chef Maya), the blocky
+customers, the lo-fi background music, and all sound effects. No asset files.
+
 ![Title screen](shots/1-title.png)
 ![Knife station](shots/7-knife-b.png)
 
@@ -42,7 +46,7 @@ To make a hostable build: `npm run build` → static site in `dist/`.
 |---|---|
 | **A / Cross** | confirm, pick letter, **chop** |
 | **B / Circle** | erase letter, **send dish out whole (no-cut orders!)** |
-| **X / Square** | hear the word again (unlimited, free) |
+| **X / Square** | hear the word again (unlimited, free); switch chef on the title screen |
 | **Y / Triangle** | Chef's Glance — re-shows the word briefly (limited per night) |
 | **D-pad / left stick** | navigate, change grade on the title screen |
 | **Start / Options** | pause |
@@ -56,12 +60,13 @@ a built-in growth path from controller to keyboard.
 
 ## Grade levels (Alberta curriculum aligned)
 
-Pick **Grade 1–6** with the d-pad on the title screen. Word banks follow the
+Pick **Kindergarten–Grade 6** with the d-pad on the title screen. Word banks follow the
 word-study progression of the
 [Alberta English Language Arts and Literature (2022) curriculum](https://curriculum.learnalberta.ca/curriculum/en):
 
 | Grade | Word focus | Example words |
 |---|---|---|
+| K | Letter sounds, simple CVC | EGG, JAM, CUP |
 | 1 | CVC words, blends, digraphs, silent-e | EGG, CHIP, CAKE |
 | 2 | Vowel teams, common patterns, early 2-syllable | PEACH, HONEY, CARROT |
 | 3 | Compound + multisyllabic words, common affixes | PANCAKE, SANDWICH |
@@ -72,9 +77,19 @@ word-study progression of the
 Grade also scales the whole game: word-flash time shrinks, cut counts and
 cut-line speed rise, and the chef calls more "HOLD!" inhibition tests. Within
 each grade there are three tiers that **auto-adapt** to the player's recent
-first-try success — no grinding mastered material, no walls.
+first-try success — no grinding mastered material, no walls. Kindergarten and
+Grade 1 nights are shorter (3 orders instead of 4) to match younger attention
+spans.
 
 ---
+
+## Music & whispers
+
+A gentle generated lo-fi loop (warm chords, soft pluck arpeggio, heartbeat-slow
+kick) plays under the game. While the player is spelling, the music **whispers
+the target word** every few seconds — ambient rehearsal of the spelling target
+through the auditory channel. Toggle music on the pause menu (**Start →
+Y/Triangle**).
 
 ## The game loop (one "day" ≈ 10–15 minutes)
 
@@ -85,8 +100,16 @@ first-try success — no grinding mastered material, no walls.
    - The player spells it on the controller letter grid.
    - Then cuts the ingredient at the **Knife Station** (3D voxel cutting board).
 3. **Sharpening wind-down** — slow, breathing-paced whetstone strokes.
-4. **Results** — stars, Knife Trust, possible knife unlock.
+4. **Results** — stars, Knife Trust, possible knife unlock, and a **word
+   recap**: every word from tonight, spelled correctly, one more look.
 5. **Build** — place an earned decoration block in a persistent restaurant.
+
+Other touches: a visual countdown bar shows exactly how long the word stays on
+screen (visible time, an ADHD support), consecutive first-try spellings build
+**streaks** with confetti and bonus trust, and every served dish gets a
+reaction from a blocky customer (Miner Mo, Builder Bea, Redstone Rex…). The
+sharpening wind-down shows the player's actual trust-tier knife on the
+whetstone, edge gleaming brighter with every breathing-paced stroke.
 
 The final order is announced as **"LAST ORDER OF THE NIGHT"** — a built-in
 transition warning for kids who struggle to stop a preferred activity.
@@ -139,7 +162,7 @@ fails on any runtime error. It needs a Playwright Chromium
 Stack: Vite + Three.js + vanilla JS. No backend, no accounts, no data leaves
 the browser.
 
-### Ideas for v2
+### Ideas for later
 
 - **Recipe Book** — players author their own dishes with sentence templates
   (sentence-composition practice; combining is an on-ramp to composing).

@@ -9,12 +9,15 @@ import { go } from '../flow.js';
 import { Save, currentKnife } from '../save.js';
 import { pickDecoChoices } from '../data/words.js';
 import { clearScene, clearHud, el, hintBar } from '../ui.js';
+import { paintBackground } from '../background.js';
 
 export const resultsScene = {
   enter({ trustEarned, results }) {
+    paintBackground('dining');
     clearHud();
     this.phase = 'stars';
     this.trustEarned = trustEarned;
+    this.resultsList = results;
 
     const stars = trustEarned >= 42 ? 3 : trustEarned >= 22 ? 2 : 1;
     const firstTry = results.filter((r) => r.firstTry).length;
@@ -46,9 +49,32 @@ export const resultsScene = {
       speak(`Day ${Save.data.day} complete! ${stars === 3 ? 'A perfect service!' : stars === 2 ? 'A strong service, chef!' : 'The kitchen survived, chef — tomorrow we sharpen up!'}`);
     }
 
+    stack.append(el('div', 'subtitle blink', 'PRESS &nbsp;A&nbsp; TO SEE TONIGHT\'S WORDS'));
+    root.append(stack);
+    root.append(hintBar([['a', 'Continue']]));
+  },
+
+  // Word recap: every word from tonight shown spelled correctly one more time
+  // (consolidation pass — see it again right after using it).
+  startRecap() {
+    this.phase = 'recap';
+    const root = clearScene();
+    const stack = el('div', 'center-stack');
+    stack.append(el('div', 'subtitle', "📖 TONIGHT'S WORDS — read them with me, chef!"));
+    for (const r of this.resultsList) {
+      const row = el('div', 'recap-row pop-in');
+      row.append(el('span', 'r-emoji', r.emoji || '🍽️'));
+      const tiles = el('div', 'r-tiles');
+      for (const ch of r.word) tiles.append(el('div', 'r-tile', ch));
+      row.append(tiles);
+      if (r.firstTry) row.append(el('span', '', '⭐'));
+      stack.append(row);
+    }
     stack.append(el('div', 'subtitle blink', 'PRESS &nbsp;A&nbsp; TO PICK YOUR PRIZE BLOCK'));
     root.append(stack);
     root.append(hintBar([['a', 'Continue']]));
+    const words = this.resultsList.map((r) => r.word).join('. ');
+    speak(`Tonight you spelled: ${words}. Wonderful work.`, { rate: 0.85 });
   },
 
   startDecoPick() {
@@ -79,6 +105,8 @@ export const resultsScene = {
 
   update() {
     if (this.phase === 'stars') {
+      if (Input.pressed('a')) { Sfx.select(); this.startRecap(); }
+    } else if (this.phase === 'recap') {
       if (Input.pressed('a')) { Sfx.select(); this.startDecoPick(); }
     } else if (this.phase === 'deco') {
       if (Input.nav('left')) { this.decoCursor = Math.max(0, this.decoCursor - 1); Sfx.move(); this.renderDecoRow(); }

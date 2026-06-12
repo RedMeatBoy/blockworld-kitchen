@@ -31,6 +31,11 @@ body {
 
 #app { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
 
+#bg-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+}
+
 #three-canvas {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
@@ -398,3 +403,90 @@ h1.game-title {
 }
 .controller-status.on { color: var(--green); }
 .controller-status.fade { opacity: 0; }
+
+/* ---------- avatars / customers ---------- */
+
+.chef-select {
+  display: flex; align-items: center; gap: 20px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 4px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 12px 22px;
+}
+.chef-select img { image-rendering: pixelated; width: 72px; height: auto; }
+.chef-select .chef-name { font-size: clamp(11px, 1.6vw, 15px); color: var(--blue); letter-spacing: 1px; }
+.chef-select .chef-hint { font-size: 9px; color: var(--dim); margin-top: 8px; }
+
+.hud-chef { display: flex; align-items: center; gap: 10px; }
+.hud-chef img { image-rendering: pixelated; width: 44px; height: auto; }
+
+.customer-card {
+  display: flex; align-items: center; gap: 18px;
+  background: var(--panel);
+  border: 4px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 16px 26px;
+  max-width: 640px;
+}
+.customer-card img { image-rendering: pixelated; width: 84px; height: auto; }
+.customer-card .c-name { font-size: 11px; color: var(--gold); margin-bottom: 10px; letter-spacing: 1px; }
+.customer-card .c-line { font-size: clamp(11px, 1.7vw, 15px); line-height: 1.8; }
+
+/* ---------- countdown bar (visual time, ADHD support) ---------- */
+
+.count-bar {
+  width: min(520px, 70vw); height: 16px;
+  background: #141923;
+  border: 4px solid var(--border);
+}
+.count-bar .fill {
+  height: 100%;
+  background: repeating-linear-gradient(90deg, var(--blue) 0 8px, #4292c4 8px 16px);
+}
+
+/* ---------- confetti ---------- */
+
+.confetti {
+  position: absolute; top: -20px;
+  width: 12px; height: 12px;
+  z-index: 60; pointer-events: none;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  to { transform: translateY(110vh) rotate(720deg); opacity: 0.6; }
+}
+
+.streak-banner {
+  background: var(--gold); color: #2a2419;
+  border: 4px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 12px 26px;
+  font-size: clamp(14px, 2.2vw, 22px);
+  animation: popin 0.25s;
+}
+
+/* ---------- sharpening canvas ---------- */
+
+#sharpen-canvas {
+  background: transparent;
+  image-rendering: pixelated;
+}
+
+/* ---------- recap ---------- */
+
+.recap-row {
+  display: flex; align-items: center; gap: 16px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 4px solid var(--border);
+  padding: 10px 20px;
+}
+.recap-row .r-emoji { font-size: 34px; }
+.recap-row .r-tiles { display: flex; gap: 6px; }
+.recap-row .r-tile {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  background: var(--green-dark);
+  border: 3px solid var(--border);
+  color: #fff;
+}

@@ -3,6 +3,8 @@ import { registerScenes, go, updateScene, sceneName } from './flow.js';
 import { Save } from './save.js';
 import { el, $overlay, updateControllerStatus } from './ui.js';
 import { unlockAudio, stopSpeech } from './audio.js';
+import { Music } from './music.js';
+import { gradeLabel } from './data/words.js';
 
 import { titleScene } from './scenes/title.js';
 import { menuScene } from './scenes/menu.js';
@@ -29,11 +31,19 @@ let overlayMode = null; // null | 'pause' | 'stats'
 function openPause() {
   overlayMode = 'pause';
   stopSpeech();
+  renderPause();
+}
+
+function renderPause() {
   const node = $overlay();
   node.innerHTML = '';
   const panel = el('div', 'overlay-panel');
   panel.append(el('h2', '', '⏸ KITCHEN PAUSED'));
-  panel.append(el('div', 'subtitle', 'Take a breath, chef.<br><br>PRESS &nbsp;A&nbsp; TO KEEP COOKING'));
+  panel.append(el('div', 'subtitle',
+    'Take a breath, chef.<br><br>' +
+    `🎵 MUSIC: <b style="color:${Save.data.music ? '#6fd96f' : '#e8604f'}">${Save.data.music ? 'ON' : 'OFF'}</b>` +
+    ' &nbsp;—&nbsp; press Y to switch<br><br>' +
+    'PRESS &nbsp;A&nbsp; TO KEEP COOKING'));
   node.append(panel);
 }
 
@@ -52,7 +62,7 @@ function openStats() {
   const table = el('div', 'stat-table');
   table.innerHTML =
     `Sessions completed: <b>${s.sessions}</b> &nbsp;·&nbsp; Current day: <b>${Save.data.day}</b><br>` +
-    `Grade level: <b>${Save.data.grade}</b> (Alberta ELAL band, set on title screen)<br>` +
+    `Grade level: <b>${gradeLabel(Save.data.grade)}</b> (Alberta ELAL band, set on title screen)<br>` +
     `Difficulty within grade: <b>tier ${Save.data.wordTier + 1} of 3</b> (auto-adapts to success rate)<br><br>` +
     `<u>Spelling (learning disorder target)</u><br>` +
     `Words attempted: <b>${s.wordsAttempted}</b> &nbsp;·&nbsp; First-try correct: <b>${pct(s.wordsFirstTry, s.wordsAttempted)}</b><br>` +
@@ -102,7 +112,12 @@ function frame(now) {
   }
 
   if (overlayMode) {
-    if (overlayMode === 'pause' && (Input.pressed('a') || Input.pressed('start'))) closeOverlay();
+    if (overlayMode === 'pause' && Input.pressed('y')) {
+      Save.data.music = !Save.data.music;
+      Save.save();
+      if (Save.data.music) Music.start(); else Music.stop();
+      renderPause();
+    } else if (overlayMode === 'pause' && (Input.pressed('a') || Input.pressed('start'))) closeOverlay();
     else if (overlayMode === 'stats' && (Input.pressed('select') || Input.pressed('b'))) closeOverlay();
   } else {
     if (Input.pressed('start') && sceneName() !== 'title') { unlockAudio(); openPause(); }

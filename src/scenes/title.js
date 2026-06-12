@@ -2,15 +2,19 @@ import { Input } from '../input.js';
 import { Sfx, speak, unlockAudio } from '../audio.js';
 import { go } from '../flow.js';
 import { Save, currentKnife } from '../save.js';
+import { gradeLabel } from '../data/words.js';
 import { clearScene, clearHud, el, hintBar } from '../ui.js';
+import { paintBackground } from '../background.js';
+import { chefImage, chefName } from '../avatar.js';
+import { Music } from '../music.js';
 
 export const titleScene = {
   enter() {
     clearHud();
+    paintBackground('dining');
     const root = clearScene();
 
     const stack = el('div', 'center-stack');
-    stack.append(el('div', '', '<span style="font-size:64px">🔪🧱</span>'));
     stack.append(el('h1', 'game-title', 'BLOCKWORLD<br>KITCHEN'));
 
     const d = Save.data;
@@ -20,8 +24,23 @@ export const titleScene = {
         ? `Day ${d.day} &nbsp;·&nbsp; Knife Trust ${d.trust} &nbsp;·&nbsp; ${knife.emoji} ${knife.name}`
         : 'A new restaurant opens today.<br>The kitchen needs a chef with steady hands.'));
 
+    const row = el('div');
+    row.style.display = 'flex';
+    row.style.gap = '24px';
+    row.style.alignItems = 'stretch';
+    row.style.flexWrap = 'wrap';
+    row.style.justifyContent = 'center';
+
+    this.chefNode = el('div', 'chef-select');
+    row.append(this.chefNode);
+
     this.gradeNode = el('div', 'grade-select');
-    stack.append(this.gradeNode);
+    this.gradeNode.style.display = 'flex';
+    this.gradeNode.style.alignItems = 'center';
+    row.append(this.gradeNode);
+
+    stack.append(row);
+    this.renderChef();
     this.renderGrade();
 
     stack.append(el('div', 'subtitle blink', 'PRESS &nbsp;A&nbsp; TO START YOUR SHIFT'));
@@ -29,21 +48,35 @@ export const titleScene = {
 
     root.append(hintBar([
       ['a', 'Start shift'],
+      ['x', 'Switch chef'],
       ['dpad', 'Change grade'],
       ['select', 'Parent stats'],
     ]));
   },
 
+  renderChef() {
+    const kind = Save.data.avatar;
+    this.chefNode.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = chefImage(kind, 8);
+    img.alt = chefName(kind);
+    this.chefNode.append(img);
+    const info = el('div');
+    info.append(el('div', 'chef-name', chefName(kind)));
+    info.append(el('div', 'chef-hint', 'X: switch chef'));
+    this.chefNode.append(info);
+  },
+
   renderGrade() {
     const g = Save.data.grade;
     this.gradeNode.innerHTML =
-      `<span class="grade-arrow${g <= 1 ? ' off' : ''}">◄</span>` +
-      `&nbsp;&nbsp;GRADE ${g}&nbsp;&nbsp;` +
+      `<span class="grade-arrow${g <= 0 ? ' off' : ''}">◄</span>` +
+      `&nbsp;&nbsp;GRADE ${gradeLabel(g)}&nbsp;&nbsp;` +
       `<span class="grade-arrow${g >= 6 ? ' off' : ''}">►</span>`;
   },
 
   update() {
-    if (Input.nav('left') && Save.data.grade > 1) {
+    if (Input.nav('left') && Save.data.grade > 0) {
       Save.setGrade(Save.data.grade - 1);
       Sfx.move();
       this.renderGrade();
@@ -53,12 +86,20 @@ export const titleScene = {
       Sfx.move();
       this.renderGrade();
     }
+    if (Input.pressed('x')) {
+      Save.data.avatar = Save.data.avatar === 'm' ? 'f' : 'm';
+      Save.save();
+      Sfx.pop();
+      this.renderChef();
+      speak(`${chefName(Save.data.avatar).toLowerCase().replace('chef', 'Chef')} reporting for duty!`, { rate: 1.0 });
+    }
     if (Input.pressed('a')) {
       unlockAudio();
+      if (Save.data.music) Music.start();
       Sfx.select();
       speak(Save.data.day > 1
-        ? `Welcome back, chef! Day ${Save.data.day}. Let's see tonight's menu.`
-        : 'Welcome to Blockworld Kitchen, chef! Let me show you tonight\'s menu.');
+        ? `Welcome back, ${chefName(Save.data.avatar).toLowerCase()}! Day ${Save.data.day}. Let's see tonight's menu.`
+        : `Welcome to Blockworld Kitchen, chef! Let me show you tonight's menu.`);
       go('menu');
     }
   },

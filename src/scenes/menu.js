@@ -7,19 +7,21 @@ import { Input } from '../input.js';
 import { Sfx, speak } from '../audio.js';
 import { go } from '../flow.js';
 import { Save } from '../save.js';
-import { pickMenu } from '../data/words.js';
+import { pickMenu, gradeParams, gradeLabel } from '../data/words.js';
 import { clearScene, el, hintBar, renderHud } from '../ui.js';
+import { paintBackground } from '../background.js';
 
 export const menuScene = {
   enter() {
+    paintBackground('dining');
     const d = Save.data;
-    this.menu = pickMenu(d.grade, d.wordTier, 4);
+    this.menu = pickMenu(d.grade, d.wordTier, gradeParams(d.grade).orders);
     renderHud({});
 
     const root = clearScene();
     const stack = el('div', 'center-stack');
     stack.append(el('h1', 'game-title', `DAY ${d.day}`));
-    stack.append(el('div', 'subtitle', `GRADE ${d.grade} KITCHEN — TONIGHT'S MENU, study it, chef!`));
+    stack.append(el('div', 'subtitle', `GRADE ${gradeLabel(d.grade)} KITCHEN — TONIGHT'S MENU, study it, chef!`));
 
     const row = el('div', 'menu-row');
     for (const item of this.menu) {

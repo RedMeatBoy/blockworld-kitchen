@@ -15,19 +15,25 @@ import { Sfx, speak, speakLetter } from '../audio.js';
 import { go } from '../flow.js';
 import { Save } from '../save.js';
 import { QWERTY_ROWS, PRAISE_SPELLING, GENTLE_RETRY, gradeParams } from '../data/words.js';
-import { clearScene, clearToasts, el, hintBar, renderHud, toast } from '../ui.js';
+import { clearScene, clearToasts, confetti, el, hintBar, renderHud, toast } from '../ui.js';
 import { KnifeStation } from './knife.js';
+import { paintBackground } from '../background.js';
+import { customerImage, CUSTOMER_REACTIONS } from '../avatar.js';
+import { Music } from '../music.js';
 
 const GLANCE_SECONDS = 1.8;
 
 export const serviceScene = {
   enter({ menu }) {
+    paintBackground('kitchen');
     this.menu = menu;
     this.params = gradeParams(Save.data.grade);
     this.orderIndex = 0;
     this.glances = this.params.glances;
     this.trustAtStart = Save.data.trust;
-    this.results = []; // per-order: { word, firstTry, glanceUsed }
+    this.results = []; // per-order: { word, firstTry, glanceUsed, emoji }
+    this.streak = 0;   // consecutive first-try spellings
+    this.whisperTimer = 0;
     this.startOrder();
   },
 
@@ -70,6 +76,7 @@ export const serviceScene = {
   startReveal() {
     this.phase = 'reveal';
     this.timer = this.params.revealSeconds;
+    this.timerTotal = this.timer;
     const root = clearScene();
     const stack = el('div', 'center-stack');
     stack.append(el('div', 'subtitle', `WATCH THE WORD, CHEF! 👀`));
@@ -78,8 +85,24 @@ export const serviceScene = {
       tiles.append(el('div', 'wtile reveal pop-in', ch));
     }
     stack.append(tiles);
+    stack.append(this.makeCountBar());
     root.append(stack);
     speak(this.order.word, { rate: 0.8 });
+  },
+
+  makeCountBar() {
+    const bar = el('div', 'count-bar');
+    this.countFill = el('div', 'fill');
+    this.countFill.style.width = '100%';
+    bar.append(this.countFill);
+    this.countBarNode = bar;
+    return bar;
+  },
+
+  updateCountBar() {
+    if (this.countFill && this.timerTotal) {
+      this.countFill.style.width = `${Math.max(0, (this.timer / this.timerTotal) * 100)}%`;
+    }
   },
 
   startSpell() {
@@ -93,6 +116,9 @@ export const serviceScene = {
 
     this.kbdNode = el('div', 'kbd');
     stack.append(this.kbdNode);
+    const bar = this.makeCountBar();
+    bar.style.visibility = 'hidden';
+    stack.append(bar);
 
     root.append(stack);
     root.append(hintBar([
@@ -141,6 +167,8 @@ export const serviceScene = {
     Sfx.pop();
     this.phase = 'glance';
     this.timer = GLANCE_SECONDS;
+    this.timerTotal = GLANCE_SECONDS;
+    if (this.countBarNode) this.countBarNode.style.visibility = 'visible';
     const word = this.order.word;
     this.tilesNode.innerHTML = '';
     for (const ch of word) this.tilesNode.append(el('div', 'wtile reveal', ch));
@@ -154,12 +182,24 @@ export const serviceScene = {
     if (attempt === word) {
       const firstTry = this.attemptCount === 1;
       Save.recordSpelling(firstTry);
-      this.results.push({ word, firstTry, glanceUsed: this.glanceUsedThisWord });
-      const pts = firstTry ? (this.glanceUsedThisWord ? 3 : 5) : 1;
+      this.results.push({ word, firstTry, glanceUsed: this.glanceUsedThisWord, emoji: this.order.emoji });
+      let pts = firstTry ? (this.glanceUsedThisWord ? 3 : 5) : 1;
+      let line = PRAISE_SPELLING[Math.floor(Math.random() * PRAISE_SPELLING.length)];
+      if (firstTry) {
+        this.streak++;
+        if (this.streak >= 2) {
+          const bonus = this.streak * 2;
+          pts += bonus;
+          line = `STREAK x${this.streak}! ${line}`;
+          confetti(30 + this.streak * 15);
+          Sfx.fanfare();
+        }
+      } else {
+        this.streak = 0;
+      }
       Save.addTrust(pts);
       this.hud();
       Sfx.ding();
-      const line = PRAISE_SPELLING[Math.floor(Math.random() * PRAISE_SPELLING.length)];
       toast(`✅ ${line} (+${pts} trust)`, 'praise');
       speak(line);
       this.renderTiles(word.split('').map(() => true));
@@ -176,6 +216,7 @@ export const serviceScene = {
       // keep only correct-position letters, then re-show the word
       this.attempt = word.split('').map((ch, i) => (this.attempt[i] === ch ? ch : undefined));
       // compact: trailing undefined are fine; typing fills first empty slot
+      this.streak = 0;
       this.phase = 'retry-pause';
       this.timer = 2.2;
     }
@@ -231,14 +272,29 @@ export const serviceScene = {
 
     KnifeStation.start(this.order, { noCut, cuts, waitZone, speed: p.indicatorSpeed }, () => {
       this.phase = 'served';
-      this.timer = 1.6;
+      this.timer = 2.6;
       this.hud();
       const root = clearScene();
       const stack = el('div', 'center-stack');
-      stack.append(el('div', '', `<span style="font-size:90px" class="pop-in">${this.order.emoji}</span>`));
+      stack.append(el('div', '', `<span style="font-size:80px" class="pop-in">${this.order.emoji}</span>`));
       stack.append(el('div', 'subtitle', `${this.order.dish} — SERVED! 🛎️`));
+
+      const seed = (Save.data.day * 7 + this.orderIndex * 3 + this.order.word.length) % 97;
+      const cust = customerImage(seed);
+      const reaction = CUSTOMER_REACTIONS[seed % CUSTOMER_REACTIONS.length];
+      const card = el('div', 'customer-card pop-in');
+      const img = document.createElement('img');
+      img.src = cust.img;
+      card.append(img);
+      const info = el('div');
+      info.append(el('div', 'c-name', cust.name));
+      info.append(el('div', 'c-line', `“${reaction}”`));
+      card.append(info);
+      stack.append(card);
+
       root.append(stack);
       Sfx.sizzle();
+      speak(reaction, { rate: 1.05, pitch: 1.2, interrupt: false });
     });
   },
 
@@ -267,15 +323,27 @@ export const serviceScene = {
 
       case 'reveal':
         this.timer -= dt;
+        this.updateCountBar();
         if (this.timer <= 0) this.startSpell();
         break;
 
       case 'glance':
         this.timer -= dt;
-        if (this.timer <= 0) { this.phase = 'spell'; this.renderTiles(); }
+        this.updateCountBar();
+        if (this.timer <= 0) {
+          this.phase = 'spell';
+          if (this.countBarNode) this.countBarNode.style.visibility = 'hidden';
+          this.renderTiles();
+        }
         break;
 
       case 'spell': {
+        // the music murmurs the target word every few seconds
+        this.whisperTimer -= dt;
+        if (this.whisperTimer <= 0) {
+          this.whisperTimer = 6.5 + Math.random() * 2;
+          if (Save.data.music) Music.whisper(this.order.word);
+        }
         // direct keyboard letters (growth path)
         for (const ch of Input.takeLetters()) this.placeLetter(ch);
         if (this.phase !== 'spell') break;

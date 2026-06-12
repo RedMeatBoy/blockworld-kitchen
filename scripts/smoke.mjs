@@ -64,9 +64,12 @@ try {
   await tap(page, 'ArrowLeft');
   await tap(page, 'ArrowLeft');
   await textVisible(page, 'GRADE 1', 4000);
+  await tap(page, 'ArrowLeft');
+  await textVisible(page, 'GRADE K', 4000); // Kindergarten band
+  await tap(page, 'ArrowRight');
   await tap(page, 'ArrowRight'); // back to grade 2 for the rest of the run
   await textVisible(page, 'GRADE 2', 4000);
-  console.log('✓ title screen + grade selector (1↔3)');
+  console.log('✓ title screen + grade selector (K↔3)');
   await tap(page, 'Enter');
 
   // --- menu preview ---
@@ -136,6 +139,11 @@ try {
   // --- results ---
   await textVisible(page, 'COMPLETE', 8000);
   console.log('✓ results screen');
+  await tap(page, 'Enter');
+
+  // --- word recap ---
+  await textVisible(page, "TONIGHT'S WORDS", 8000);
+  console.log('✓ word recap screen');
   await tap(page, 'Enter');
 
   // --- decoration pick ---

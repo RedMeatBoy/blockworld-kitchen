@@ -5,7 +5,9 @@ const KEY = 'blockworld-kitchen-save-v1';
 const DEFAULTS = {
   day: 1,
   trust: 0,
-  grade: 2,              // 1..6, picked on the title screen (Alberta curriculum bands)
+  grade: 2,              // 0 (K)..6, picked on the title screen (Alberta curriculum bands)
+  avatar: 'm',           // 'm' (Chef Max) | 'f' (Chef Maya)
+  music: true,
   wordTier: 0,           // 0..2 within the grade band, adapts with spelling success
   decorations: [],       // { x, y, emoji }
   pendingDecoChoices: null,
@@ -75,7 +77,7 @@ export const Save = {
 
   /** Change grade band; resets the within-grade adaptive tier. */
   setGrade(grade) {
-    this.data.grade = Math.min(6, Math.max(1, grade));
+    this.data.grade = Math.min(6, Math.max(0, grade));
     this.data.wordTier = 0;
     this.data.recentSpelling = [];
     this.save();

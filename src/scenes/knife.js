@@ -92,6 +92,33 @@ function initThree() {
   zoneStrip.add(postA, postB);
   zoneStrip.position.x = 0;
 
+  // background kitchen props for depth (a stock pot and a crate of produce)
+  const potMat = new THREE.MeshLambertMaterial({ color: 0x707a8c });
+  const pot = new THREE.Group();
+  const potBody = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.3, 1.6), potMat);
+  const potLid = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.2, 1.8),
+    new THREE.MeshLambertMaterial({ color: 0x4a5160 }));
+  potLid.position.y = 0.75;
+  const potKnob = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.2, 0.3), potMat);
+  potKnob.position.y = 0.95;
+  pot.add(potBody, potLid, potKnob);
+  pot.position.set(-4.6, 0.4, -2.6);
+  scene.add(pot);
+
+  const crate = new THREE.Group();
+  const crateBox = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.0, 1.4),
+    new THREE.MeshLambertMaterial({ color: 0x8a5f38 }));
+  crate.add(crateBox);
+  const produceColors = [0xd9453a, 0x5fb33b, 0xf2c83b];
+  produceColors.forEach((c, i) => {
+    const veg = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.45, 0.45),
+      new THREE.MeshLambertMaterial({ color: c }));
+    veg.position.set(-0.5 + i * 0.5, 0.65, (i % 2) * 0.3 - 0.15);
+    crate.add(veg);
+  });
+  crate.position.set(4.6, 0.2, -2.4);
+  scene.add(crate);
+
   three = { renderer, scene, camera, indicator, knifeGroup, blade, bladeMat, zoneStrip };
   resize();
   window.addEventListener('resize', resize);

@@ -20,6 +20,11 @@ const W = {
   PIE:  { dish: 'Apple Pie Slice', emoji: '🥧', color: 0xd9913b },
   NUT:  { dish: 'Roasted Nut Mix', emoji: '🥜', color: 0xc9925e },
   POT:  { dish: 'Hot Pot Surprise', emoji: '🍲', color: 0xb35f3b },
+  CUP:  { dish: 'Cocoa in a Cup', emoji: '☕', color: 0x8a5a3b },
+  PAN:  { dish: 'Pan-Fried Surprise', emoji: '🍳', color: 0x707a8c },
+  FIG:  { dish: 'Sweet Fig Bites', emoji: '🟣', color: 0x7a4fb3 },
+  JUG:  { dish: 'Juice Jug', emoji: '🧃', color: 0xe8843b },
+  YAM:  { dish: 'Roasted Yams', emoji: '🍠', color: 0xb3653b },
   PEA:  { dish: 'Green Pea Soup', emoji: '🥣', color: 0x7fc96b },
   TEA:  { dish: 'Honey Mint Tea', emoji: '🍵', color: 0x8fbf6b },
   // -- blends / digraphs --
@@ -117,6 +122,11 @@ const W = {
 
 // Three tiers per grade (easier → harder within the grade band).
 const GRADE_TIERS = {
+  0: [ // Kindergarten: letter names/sounds, simple CVC
+    ['EGG', 'HAM', 'JAM', 'BUN', 'POT', 'PEA'],
+    ['CUP', 'PAN', 'NUT', 'TEA', 'FIG', 'JUG', 'YAM'],
+    ['CAKE', 'RICE', 'MILK', 'CORN', 'TACO', 'FISH'],
+  ],
   1: [
     ['EGG', 'HAM', 'JAM', 'BUN', 'POT', 'NUT', 'PEA', 'TEA'],
     ['PIE', 'FISH', 'CHIP', 'CORN', 'MILK', 'PLUM', 'CRAB', 'CHOP'],
@@ -149,25 +159,28 @@ const GRADE_TIERS = {
   ],
 };
 
-export const GRADES = [1, 2, 3, 4, 5, 6];
+export const GRADES = [0, 1, 2, 3, 4, 5, 6]; // 0 = Kindergarten
+
+export function gradeLabel(grade) { return grade === 0 ? 'K' : String(grade); }
 
 /** Difficulty parameters per grade. */
 export function gradeParams(grade) {
-  const g = Math.min(6, Math.max(1, grade));
+  const g = Math.min(6, Math.max(0, grade));
   return {
-    revealSeconds: Math.max(2.0, 4.2 - g * 0.35),  // word flash time
-    glances: g <= 2 ? 3 : 2,                        // Chef's Glances per night
+    revealSeconds: g === 0 ? 5.0 : Math.max(2.0, 4.2 - g * 0.35), // word flash time
+    glances: g === 0 ? 4 : g <= 2 ? 3 : 2,          // Chef's Glances per night
     baseCuts: g <= 2 ? 2 : g <= 4 ? 3 : 4,          // knife cuts per ingredient
     maxCuts: 4,
-    indicatorSpeed: 1.7 + g * 0.18,                 // cut-line speed
-    waitChance: 0.25 + g * 0.05,                    // HOLD-call probability
-    noCutChance: g === 1 ? 0.15 : 0.22,             // send-it-whole probability
+    indicatorSpeed: g === 0 ? 1.5 : 1.7 + g * 0.18, // cut-line speed
+    waitChance: g === 0 ? 0.18 : 0.25 + g * 0.05,   // HOLD-call probability
+    noCutChance: g <= 1 ? 0.15 : 0.22,              // send-it-whole probability
+    orders: g <= 1 ? 3 : 4,                         // shorter nights for the youngest chefs
   };
 }
 
 /** Pick `count` orders: mostly current tier, one comfort word from a tier down. */
 export function pickMenu(grade, tier, count = 4) {
-  const tiers = GRADE_TIERS[Math.min(6, Math.max(1, grade))];
+  const tiers = GRADE_TIERS[Math.min(6, Math.max(0, grade))];
   const t = Math.min(tier, tiers.length - 1);
   const pool = [...new Set(tiers[t])];
   const easier = t > 0 ? [...new Set(tiers[t - 1])] : null;

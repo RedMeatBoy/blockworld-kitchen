@@ -12,6 +12,8 @@ function ac() {
 
 export function unlockAudio() { try { ac(); } catch { /* no audio available */ } }
 
+export function getAudioContext() { try { return ac(); } catch { return null; } }
+
 function tone({ freq = 440, dur = 0.15, type = 'square', vol = 0.18, slide = 0, when = 0 }) {
   try {
     const a = ac();
@@ -86,7 +88,7 @@ if ('speechSynthesis' in window) {
   speechSynthesis.addEventListener('voiceschanged', pickVoice);
 }
 
-export function speak(text, { rate = 0.95, pitch = 0.9, interrupt = true } = {}) {
+export function speak(text, { rate = 0.95, pitch = 0.9, interrupt = true, volume = 1 } = {}) {
   if (!('speechSynthesis' in window)) return;
   if (!voicesReady) pickVoice();
   if (interrupt) speechSynthesis.cancel();
@@ -94,7 +96,7 @@ export function speak(text, { rate = 0.95, pitch = 0.9, interrupt = true } = {})
   if (voice) utter.voice = voice;
   utter.rate = rate;
   utter.pitch = pitch;
-  utter.volume = 1;
+  utter.volume = volume;
   speechSynthesis.speak(utter);
 }
 

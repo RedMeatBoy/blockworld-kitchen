@@ -1,6 +1,7 @@
 // DOM helpers, HUD, toasts.
 
 import { Save, currentKnife, nextKnife } from './save.js';
+import { chefImage } from './avatar.js';
 
 export const $scene = () => document.getElementById('scene');
 export const $hud = () => document.getElementById('hud');
@@ -69,14 +70,20 @@ export function renderHud({ orders = null, orderIndex = 0, glances = null } = {}
     ? Math.round(((d.trust - knife.trust) / (next.trust - knife.trust)) * 100)
     : 100;
 
-  const trustBox = el('div', 'trust-box');
-  trustBox.append(el('div', 'trust-label', `KNIFE TRUST: ${d.trust}`));
+  const trustBox = el('div', 'trust-box hud-chef');
+  const chefImg = document.createElement('img');
+  chefImg.src = chefImage(d.avatar, 4);
+  trustBox.append(chefImg);
+  const trustInner = el('div');
+  trustInner.style.flex = '1';
+  trustBox.append(trustInner);
+  trustInner.append(el('div', 'trust-label', `KNIFE TRUST: ${d.trust}`));
   const barOuter = el('div', 'trust-bar-outer');
   const fill = el('div', 'trust-bar-fill');
   fill.style.width = `${pct}%`;
   barOuter.append(fill);
-  trustBox.append(barOuter);
-  trustBox.append(el('div', 'trust-knife',
+  trustInner.append(barOuter);
+  trustInner.append(el('div', 'trust-knife',
     `${knife.emoji} ${knife.name}${next ? ` &nbsp;→&nbsp; ${next.emoji} at ${next.trust}` : ' (MAX!)'}`));
   inner.append(trustBox);
 
@@ -116,5 +123,21 @@ export function updateControllerStatus(connected) {
   clearTimeout(statusFadeTimer);
   if (connected) {
     statusFadeTimer = setTimeout(() => node.classList.add('fade'), 4000);
+  }
+}
+
+const CONFETTI_COLORS = ['#f5c84b', '#6fd96f', '#5ab2e8', '#e8604f', '#9a5fb3', '#5ee6e0'];
+
+export function confetti(count = 60) {
+  const app = document.getElementById('app');
+  for (let i = 0; i < count; i++) {
+    const c = el('div', 'confetti');
+    c.style.left = `${Math.random() * 100}vw`;
+    c.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+    c.style.animationDuration = `${1.6 + Math.random() * 1.6}s`;
+    c.style.animationDelay = `${Math.random() * 0.4}s`;
+    if (i % 3 === 0) c.style.borderRadius = '50%';
+    app.append(c);
+    setTimeout(() => c.remove(), 3800);
   }
 }
