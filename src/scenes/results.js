@@ -1,0 +1,94 @@
+// End-of-shift results: stars, knife unlock check, decoration pick.
+// Rewards are creative (blocks for the restaurant) rather than points-for-
+// points'-sake — external token rewards often don't motivate ADHD kids, but
+// building something of their own does.
+
+import { Input } from '../input.js';
+import { Sfx, speak } from '../audio.js';
+import { go } from '../flow.js';
+import { Save, currentKnife } from '../save.js';
+import { pickDecoChoices } from '../data/words.js';
+import { clearScene, clearHud, el, hintBar } from '../ui.js';
+
+export const resultsScene = {
+  enter({ trustEarned, results }) {
+    clearHud();
+    this.phase = 'stars';
+    this.trustEarned = trustEarned;
+
+    const stars = trustEarned >= 42 ? 3 : trustEarned >= 22 ? 2 : 1;
+    const firstTry = results.filter((r) => r.firstTry).length;
+
+    const trustBefore = Save.data.trust - trustEarned;
+    const knifeBefore = currentKnife(Math.max(0, trustBefore));
+    const knifeNow = currentKnife(Save.data.trust);
+    this.unlocked = knifeNow.name !== knifeBefore.name ? knifeNow : null;
+
+    const root = clearScene();
+    const stack = el('div', 'center-stack');
+    stack.append(el('h1', 'game-title', `DAY ${Save.data.day} COMPLETE!`));
+    stack.append(el('div', 'stars pop-in', '⭐'.repeat(stars) + '<span style="opacity:.18">' + '⭐'.repeat(3 - stars) + '</span>'));
+
+    const statLines = el('div', 'stat-line');
+    statLines.innerHTML =
+      `Words spelled first try: <b>${firstTry} / ${results.length}</b><br>` +
+      `Knife Trust earned tonight: <b>+${Math.max(0, trustEarned)}</b><br>` +
+      `Total Knife Trust: <b>${Save.data.trust}</b>`;
+    stack.append(statLines);
+
+    if (this.unlocked) {
+      stack.append(el('div', 'unlock-banner',
+        `🔓 KNIFE UNLOCKED!<br>${this.unlocked.emoji} ${this.unlocked.name}<br><span style="font-size:10px">The kitchen trusts you with sharper steel.</span>`));
+      Sfx.fanfare();
+      speak(`Incredible! The kitchen now trusts you with the ${this.unlocked.name}. You earned that with steady hands.`);
+    } else {
+      Sfx.star();
+      speak(`Day ${Save.data.day} complete! ${stars === 3 ? 'A perfect service!' : stars === 2 ? 'A strong service, chef!' : 'The kitchen survived, chef — tomorrow we sharpen up!'}`);
+    }
+
+    stack.append(el('div', 'subtitle blink', 'PRESS &nbsp;A&nbsp; TO PICK YOUR PRIZE BLOCK'));
+    root.append(stack);
+    root.append(hintBar([['a', 'Continue']]));
+  },
+
+  startDecoPick() {
+    this.phase = 'deco';
+    this.choices = pickDecoChoices(Save.data.decorations);
+    this.decoCursor = 0;
+
+    const root = clearScene();
+    const stack = el('div', 'center-stack');
+    stack.append(el('div', 'subtitle', '🧱 PICK A BLOCK FOR YOUR RESTAURANT'));
+    this.rowNode = el('div', 'deco-row');
+    stack.append(this.rowNode);
+    root.append(stack);
+    root.append(hintBar([['a', 'Choose'], ['dpad', 'Browse']]));
+    this.renderDecoRow();
+    speak('Pick a prize block for your restaurant!');
+  },
+
+  renderDecoRow() {
+    this.rowNode.innerHTML = '';
+    this.choices.forEach((d, i) => {
+      const card = el('div', 'deco-card' + (i === this.decoCursor ? ' cursor' : ''));
+      card.append(el('span', 'd-emoji', d.emoji));
+      card.append(document.createTextNode(d.name));
+      this.rowNode.append(card);
+    });
+  },
+
+  update() {
+    if (this.phase === 'stars') {
+      if (Input.pressed('a')) { Sfx.select(); this.startDecoPick(); }
+    } else if (this.phase === 'deco') {
+      if (Input.nav('left')) { this.decoCursor = Math.max(0, this.decoCursor - 1); Sfx.move(); this.renderDecoRow(); }
+      if (Input.nav('right')) { this.decoCursor = Math.min(this.choices.length - 1, this.decoCursor + 1); Sfx.move(); this.renderDecoRow(); }
+      if (Input.pressed('a')) {
+        Sfx.ding();
+        go('build', { newDeco: this.choices[this.decoCursor] });
+      }
+    }
+  },
+
+  exit() {},
+};
