@@ -70,6 +70,14 @@ try {
   await tap(page, 'ArrowRight'); // back to grade 2 for the rest of the run
   await textVisible(page, 'GRADE 2', 4000);
   console.log('✓ title screen + grade selector (K↔3)');
+
+  // --- chef switching (d-pad up) ---
+  await textVisible(page, 'CHEF MAX', 4000);
+  await tap(page, 'ArrowUp');
+  await textVisible(page, 'CHEF MAYA', 4000);
+  await tap(page, 'ArrowUp');
+  await textVisible(page, 'CHEF MAX', 4000);
+  console.log('✓ chef switching works');
   await tap(page, 'Enter');
 
   // --- menu preview ---

@@ -48,8 +48,7 @@ export const titleScene = {
 
     root.append(hintBar([
       ['a', 'Start shift'],
-      ['x', 'Switch chef'],
-      ['dpad', 'Change grade'],
+      ['dpad', '◄► grade · ▲▼ chef'],
       ['select', 'Parent stats'],
     ]));
   },
@@ -63,7 +62,7 @@ export const titleScene = {
     this.chefNode.append(img);
     const info = el('div');
     info.append(el('div', 'chef-name', chefName(kind)));
-    info.append(el('div', 'chef-hint', 'X: switch chef'));
+    info.append(el('div', 'chef-hint', '▲▼ or X: switch chef'));
     this.chefNode.append(info);
   },
 
@@ -73,6 +72,14 @@ export const titleScene = {
       `<span class="grade-arrow${g <= 0 ? ' off' : ''}">◄</span>` +
       `&nbsp;&nbsp;GRADE ${gradeLabel(g)}&nbsp;&nbsp;` +
       `<span class="grade-arrow${g >= 6 ? ' off' : ''}">►</span>`;
+  },
+
+  switchChef() {
+    Save.data.avatar = Save.data.avatar === 'm' ? 'f' : 'm';
+    Save.save();
+    Sfx.pop();
+    this.renderChef();
+    speak(`${chefName(Save.data.avatar)} reporting for duty!`, { rate: 1.0 });
   },
 
   update() {
@@ -86,12 +93,13 @@ export const titleScene = {
       Sfx.move();
       this.renderGrade();
     }
-    if (Input.pressed('x')) {
-      Save.data.avatar = Save.data.avatar === 'm' ? 'f' : 'm';
-      Save.save();
-      Sfx.pop();
-      this.renderChef();
-      speak(`${chefName(Save.data.avatar).toLowerCase().replace('chef', 'Chef')} reporting for duty!`, { rate: 1.0 });
+    // Chef switch accepts many inputs: X/Square, d-pad up/down, or the X
+    // letter key — letter keys bypass the action map (they're reserved for
+    // spelling), and some controllers report non-standard button indices,
+    // so a single binding isn't reliable.
+    const typedX = Input.takeLetters().includes('X');
+    if (Input.pressed('x') || Input.pressed('y') || typedX || Input.nav('up') || Input.nav('down')) {
+      this.switchChef();
     }
     if (Input.pressed('a')) {
       unlockAudio();

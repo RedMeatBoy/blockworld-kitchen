@@ -14,7 +14,7 @@ import { Input } from '../input.js';
 import { Sfx, speak, speakLetter } from '../audio.js';
 import { go } from '../flow.js';
 import { Save } from '../save.js';
-import { QWERTY_ROWS, PRAISE_SPELLING, GENTLE_RETRY, gradeParams } from '../data/words.js';
+import { QWERTY_ROWS, PRAISE_SPELLING, GENTLE_RETRY, gradeParams, computePerks } from '../data/words.js';
 import { clearScene, clearToasts, confetti, el, hintBar, renderHud, toast } from '../ui.js';
 import { KnifeStation } from './knife.js';
 import { paintBackground } from '../background.js';
@@ -26,10 +26,13 @@ const GLANCE_SECONDS = 1.8;
 export const serviceScene = {
   enter({ menu }) {
     paintBackground('kitchen');
+    Music.setMood('upbeat');
     this.menu = menu;
     this.params = gradeParams(Save.data.grade);
+    this.perks = computePerks(Save.data.decorations);
+    this.shields = this.perks.shield;
     this.orderIndex = 0;
-    this.glances = this.params.glances;
+    this.glances = this.params.glances + this.perks.glance;
     this.trustAtStart = Save.data.trust;
     this.results = []; // per-order: { word, firstTry, glanceUsed, emoji }
     this.streak = 0;   // consecutive first-try spellings
@@ -75,7 +78,7 @@ export const serviceScene = {
 
   startReveal() {
     this.phase = 'reveal';
-    this.timer = this.params.revealSeconds;
+    this.timer = this.params.revealSeconds + this.perks.reveal;
     this.timerTotal = this.timer;
     const root = clearScene();
     const stack = el('div', 'center-stack');
@@ -188,7 +191,7 @@ export const serviceScene = {
       if (firstTry) {
         this.streak++;
         if (this.streak >= 2) {
-          const bonus = this.streak * 2;
+          const bonus = this.streak * 2 + this.perks.streak;
           pts += bonus;
           line = `STREAK x${this.streak}! ${line}`;
           confetti(30 + this.streak * 15);
@@ -216,7 +219,12 @@ export const serviceScene = {
       // keep only correct-position letters, then re-show the word
       this.attempt = word.split('').map((ch, i) => (this.attempt[i] === ch ? ch : undefined));
       // compact: trailing undefined are fine; typing fills first empty slot
-      this.streak = 0;
+      if (this.streak >= 2 && this.shields > 0) {
+        this.shields--;
+        toast('🐈 The Kitchen Cat pounces on the bad ticket — your streak is safe!', 'praise', 3000);
+      } else {
+        this.streak = 0;
+      }
       this.phase = 'retry-pause';
       this.timer = 2.2;
     }
@@ -270,7 +278,12 @@ export const serviceScene = {
       waitZone = Math.floor(Math.random() * cuts);
     }
 
-    KnifeStation.start(this.order, { noCut, cuts, waitZone, speed: p.indicatorSpeed }, () => {
+    KnifeStation.start(this.order, {
+      noCut, cuts, waitZone,
+      speed: p.indicatorSpeed * (1 - this.perks.slow),
+      zoneWiden: this.perks.zone,
+      perfectBonus: this.perks.perfect,
+    }, () => {
       this.phase = 'served';
       this.timer = 2.6;
       this.hud();
@@ -291,6 +304,12 @@ export const serviceScene = {
       info.append(el('div', 'c-line', `“${reaction}”`));
       card.append(info);
       stack.append(card);
+
+      if (this.perks.tip > 0) {
+        Save.addTrust(this.perks.tip);
+        stack.append(el('div', 'subtitle', `💰 TIP: +${this.perks.tip} trust`));
+        this.hud();
+      }
 
       root.append(stack);
       Sfx.sizzle();

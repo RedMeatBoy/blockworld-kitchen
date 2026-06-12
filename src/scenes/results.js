@@ -10,10 +10,12 @@ import { Save, currentKnife } from '../save.js';
 import { pickDecoChoices } from '../data/words.js';
 import { clearScene, clearHud, el, hintBar } from '../ui.js';
 import { paintBackground } from '../background.js';
+import { Music } from '../music.js';
 
 export const resultsScene = {
   enter({ trustEarned, results }) {
     paintBackground('dining');
+    Music.setMood('upbeat');
     clearHud();
     this.phase = 'stars';
     this.trustEarned = trustEarned;
@@ -84,7 +86,7 @@ export const resultsScene = {
 
     const root = clearScene();
     const stack = el('div', 'center-stack');
-    stack.append(el('div', 'subtitle', '🧱 PICK A BLOCK FOR YOUR RESTAURANT'));
+    stack.append(el('div', 'subtitle', '🧱 PICK A BLOCK — every block gives your kitchen a POWER!'));
     this.rowNode = el('div', 'deco-row');
     stack.append(this.rowNode);
     root.append(stack);
@@ -99,6 +101,7 @@ export const resultsScene = {
       const card = el('div', 'deco-card' + (i === this.decoCursor ? ' cursor' : ''));
       card.append(el('span', 'd-emoji', d.emoji));
       card.append(document.createTextNode(d.name));
+      card.append(el('div', 'd-perk', d.blurb || ''));
       this.rowNode.append(card);
     });
   },

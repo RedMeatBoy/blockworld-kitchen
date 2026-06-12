@@ -197,24 +197,63 @@ export function pickMenu(grade, tier, count = 4) {
 
 export const QWERTY_ROWS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
 
+// Every decoration is a real kitchen upgrade — the restaurant the player
+// builds literally makes them a stronger chef. Perk types:
+//   glance      +N Chef's Glances per night
+//   reveal      +N seconds of word-flash time
+//   shield      the Kitchen Cat protects a spelling streak once per night
+//   perfect     +N trust on every PERFECT cut
+//   tip         +N trust tip from every served customer
+//   streak      +N trust on every streak celebration
+//   zone        green cut zone N% wider
+//   slow        cut line N% slower
 export const DECORATIONS = [
-  { emoji: '🪴', name: 'Potted Plant' },
-  { emoji: '🖼️', name: 'Painting' },
-  { emoji: '🛋️', name: 'Cozy Couch' },
-  { emoji: '🐈', name: 'Kitchen Cat' },
-  { emoji: '🪔', name: 'Lantern' },
-  { emoji: '🎸', name: 'Wall Guitar' },
-  { emoji: '🐠', name: 'Fish Tank' },
-  { emoji: '🏆', name: 'Trophy' },
-  { emoji: '🪑', name: 'Fancy Chair' },
-  { emoji: '🕰️', name: 'Old Clock' },
-  { emoji: '🌵', name: 'Cactus' },
-  { emoji: '🧸', name: 'Mascot Bear' },
-  { emoji: '🎍', name: 'Bamboo' },
-  { emoji: '📚', name: 'Cookbook Shelf' },
-  { emoji: '🔮', name: 'Magic Orb' },
-  { emoji: '🗿', name: 'Stone Statue' },
+  { emoji: '🪴', name: 'Potted Plant',   perk: { type: 'glance', v: 1 },    blurb: '+1 Chef\'s Glance each night' },
+  { emoji: '🔮', name: 'Magic Orb',      perk: { type: 'glance', v: 1 },    blurb: '+1 Chef\'s Glance each night' },
+  { emoji: '🕰️', name: 'Old Clock',      perk: { type: 'reveal', v: 0.7 },  blurb: 'Words stay on screen longer' },
+  { emoji: '🛋️', name: 'Cozy Couch',     perk: { type: 'reveal', v: 0.4 },  blurb: 'Words stay a little longer' },
+  { emoji: '📚', name: 'Cookbook Shelf', perk: { type: 'reveal', v: 0.5 },  blurb: 'Words stay a little longer' },
+  { emoji: '🐈', name: 'Kitchen Cat',    perk: { type: 'shield', v: 1 },    blurb: 'Protects your streak once a night' },
+  { emoji: '🏆', name: 'Trophy',         perk: { type: 'perfect', v: 2 },   blurb: '+2 trust on PERFECT cuts' },
+  { emoji: '🗿', name: 'Stone Statue',   perk: { type: 'perfect', v: 1 },   blurb: '+1 trust on PERFECT cuts' },
+  { emoji: '🧸', name: 'Mascot Bear',    perk: { type: 'tip', v: 1 },       blurb: 'Customers tip +1 trust' },
+  { emoji: '🪑', name: 'Fancy Chair',    perk: { type: 'tip', v: 1 },       blurb: 'Customers tip +1 trust' },
+  { emoji: '🎸', name: 'Wall Guitar',    perk: { type: 'streak', v: 2 },    blurb: '+2 trust on streaks' },
+  { emoji: '🖼️', name: 'Painting',       perk: { type: 'streak', v: 1 },    blurb: '+1 trust on streaks' },
+  { emoji: '🪔', name: 'Lantern',        perk: { type: 'zone', v: 0.12 },   blurb: 'Green cut zone 12% wider' },
+  { emoji: '🌵', name: 'Cactus',         perk: { type: 'zone', v: 0.08 },   blurb: 'Green cut zone 8% wider' },
+  { emoji: '🐠', name: 'Fish Tank',      perk: { type: 'slow', v: 0.07 },   blurb: 'Cut line 7% calmer' },
+  { emoji: '🎍', name: 'Bamboo',         perk: { type: 'slow', v: 0.05 },   blurb: 'Cut line 5% calmer' },
 ];
+
+const DECO_BY_EMOJI = Object.fromEntries(DECORATIONS.map((d) => [d.emoji, d]));
+
+/** Aggregate the perks of every placed decoration into one effects object. */
+export function computePerks(placed) {
+  const fx = { glance: 0, reveal: 0, shield: 0, perfect: 0, tip: 0, streak: 0, zone: 0, slow: 0 };
+  for (const p of placed) {
+    const deco = DECO_BY_EMOJI[p.emoji];
+    if (deco) fx[deco.perk.type] += deco.perk.v;
+  }
+  // keep the timing perks from trivialising the knife game
+  fx.zone = Math.min(fx.zone, 0.35);
+  fx.slow = Math.min(fx.slow, 0.25);
+  return fx;
+}
+
+/** Human-readable lines for the active restaurant powers. */
+export function describePerks(fx) {
+  const lines = [];
+  if (fx.glance) lines.push(`👁 +${fx.glance} Chef's Glance${fx.glance > 1 ? 's' : ''}`);
+  if (fx.reveal) lines.push(`🕰 +${fx.reveal.toFixed(1)}s word time`);
+  if (fx.shield) lines.push(`🐈 streak protection x${fx.shield}`);
+  if (fx.perfect) lines.push(`🏆 +${fx.perfect} on perfect cuts`);
+  if (fx.tip) lines.push(`🧸 +${fx.tip} customer tips`);
+  if (fx.streak) lines.push(`🎸 +${fx.streak} streak trust`);
+  if (fx.zone) lines.push(`🪔 cut zone +${Math.round(fx.zone * 100)}%`);
+  if (fx.slow) lines.push(`🐠 cut line ${Math.round(fx.slow * 100)}% calmer`);
+  return lines;
+}
 
 export function pickDecoChoices(owned) {
   const ownedEmojis = new Set(owned.map((d) => d.emoji));

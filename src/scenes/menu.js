@@ -7,7 +7,7 @@ import { Input } from '../input.js';
 import { Sfx, speak } from '../audio.js';
 import { go } from '../flow.js';
 import { Save } from '../save.js';
-import { pickMenu, gradeParams, gradeLabel } from '../data/words.js';
+import { pickMenu, gradeParams, gradeLabel, computePerks, describePerks } from '../data/words.js';
 import { clearScene, el, hintBar, renderHud } from '../ui.js';
 import { paintBackground } from '../background.js';
 
@@ -32,6 +32,13 @@ export const menuScene = {
       row.append(card);
     }
     stack.append(row);
+
+    const powers = describePerks(computePerks(d.decorations));
+    if (powers.length) {
+      stack.append(el('div', 'powers-panel pop-in',
+        `<div class="p-head">⚡ RESTAURANT POWERS</div>${powers.map((p) => `<span class="p-item">${p}</span>`).join('')}`));
+    }
+
     stack.append(el('div', 'subtitle blink', 'PRESS &nbsp;A&nbsp; WHEN YOU ARE READY'));
     root.append(stack);
     root.append(hintBar([

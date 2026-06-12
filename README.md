@@ -85,9 +85,10 @@ spans.
 
 ## Music & whispers
 
-A gentle generated lo-fi loop (warm chords, soft pluck arpeggio, heartbeat-slow
-kick) plays under the game. While the player is spelling, the music **whispers
-the target word** every few seconds — ambient rehearsal of the spelling target
+An original bouncy chiptune (square-wave lead, bouncing triangle bass, drums,
+and a little swing) plays while cooking, switching to slow warm pads during the
+sharpening wind-down. While the player is spelling, the music **whispers the
+target word** every few seconds — ambient rehearsal of the spelling target
 through the auditory channel. Toggle music on the pause menu (**Start →
 Y/Triangle**).
 
@@ -98,11 +99,19 @@ Y/Triangle**).
 2. **Dinner service** — for each order:
    - The chef **speaks** the order; the word **flashes** visually, then hides.
    - The player spells it on the controller letter grid.
-   - Then cuts the ingredient at the **Knife Station** (3D voxel cutting board).
+   - Then cuts the ingredient at the **Knife Station** — a real voxel model
+     (the FISH looks like a fish, the CAKE has tiers and a cherry), with the
+     chosen chef standing at the board swinging the knife on every cut.
 3. **Sharpening wind-down** — slow, breathing-paced whetstone strokes.
 4. **Results** — stars, Knife Trust, possible knife unlock, and a **word
    recap**: every word from tonight, spelled correctly, one more look.
 5. **Build** — place an earned decoration block in a persistent restaurant.
+   **Every block is a real kitchen upgrade**: the Potted Plant grants an extra
+   Chef's Glance, the Old Clock keeps words on screen longer, the Kitchen Cat
+   protects a spelling streak once a night, the Trophy pays bonus trust on
+   perfect cuts, the Lantern widens the cut zone, the Fish Tank calms the cut
+   line… Active powers are shown on the menu screen each night, so the
+   restaurant the player builds literally makes them a stronger chef.
 
 Other touches: a visual countdown bar shows exactly how long the word stays on
 screen (visible time, an ADHD support), consecutive first-try spellings build
@@ -127,7 +136,7 @@ transition warning for kids who struggle to stop a preferred activity.
 | No-cut orders (press B, never A) | Withholding as a *win condition* — impulse control framed as elite chef discipline |
 | **Knife Trust** progression (wooden → stone → iron → gold → diamond) | Identity-based motivation: the kitchen trusts you with sharper tools because you've shown control |
 | Sharpening wind-down with breath cues | Disguised mindfulness/regulation practice |
-| Persistent restaurant building | Creation-based reward (works where sticker charts don't) |
+| Persistent restaurant building, where every block grants a kitchen power | Creation-based reward with real in-game meaning (works where sticker charts don't) |
 | Menu preview, order-progress dots, last-order warning | Visual schedule + predictable transitions |
 | Grade bands + adaptive tiers | Right-sized challenge; no repetition of mastered material |
 
