@@ -95,6 +95,118 @@ function renderTemplate(template, colors, scale) {
   return cv;
 }
 
+// ---------- animated spelling-screen chef ----------
+// Pose frames are the base chef template with a few rows swapped out.
+// think: hand on chin / at temple (alternating) — plus thought dots in CSS
+// fistpump: arm out, then fist punched high with a big grin
+// facepalm: palm over the eyes, then sliding down the cheek
+
+function withRows(overrides) {
+  const t = [...CHEF_TEMPLATE];
+  for (const [i, row] of Object.entries(overrides)) t[Number(i)] = row;
+  return t;
+}
+
+const POSE_TEMPLATES = {
+  think: [
+    withRows({
+      9:  '..L..SSSSSSSS...',
+      10: '...WWWWWWWWWWW..',
+      11: '..WWWWWWWWWWWWW.',
+      14: '..SSWAAAAAAW....',
+    }),
+    withRows({
+      6:  '..LhSESSSSESSS..',
+      7:  '..L.SSSSSSSSWW..',
+      10: '...WWWWWWWWWWW..',
+      14: '..SSWAAAAAAW....',
+    }),
+  ],
+  fistpump: [
+    withRows({
+      8:  '..L.SSsMMsSS.LS.',
+      9:  '..L..SSSSSS..WW.',
+      10: '...WWWWWWWWWWW..',
+      14: '..SSWAAAAAAW....',
+    }),
+    withRows({
+      2:  '...WWWWWWWWWWS..',
+      3:  '...wwwwwwwwwwW..',
+      4:  '...hhSSSSSShhW..',
+      5:  '...hSSSSSSSShW..',
+      6:  '..LhSESSSSEShW..',
+      7:  '..L.SSSSSSSS.W..',
+      8:  '..L.sMMMMMMs.W..',
+      14: '..SSWAAAAAAW....',
+    }),
+  ],
+  facepalm: [
+    withRows({
+      5:  '...hSsssssSSh...',
+      6:  '..LhsssssssShL..',
+      7:  '..L.SSSSSWWW.L..',
+      8:  '..L.SSssssSS.L..',
+      14: '..SSWAAAAAAW....',
+    }),
+    withRows({
+      7:  '..L.SsssssSSWL..',
+      8:  '..L.SSssssSS.L..',
+      14: '..SSWAAAAAAW....',
+    }),
+  ],
+};
+
+export { POSE_TEMPLATES }; // exported for validation tests
+
+const POSE_TIMING = { think: 0.7, fistpump: 0.24, facepalm: 0.55 };
+
+/**
+ * An animated chef widget for the spelling screen.
+ * Returns { node, setPose(name), update(dt) }.
+ */
+export function createChefSprite(kind, scale = 8) {
+  const frames = {};
+  for (const [pose, templates] of Object.entries(POSE_TEMPLATES)) {
+    frames[pose] = templates.map((t) =>
+      renderTemplate(t, CHEFS[kind].colors, scale).toDataURL());
+  }
+
+  const node = document.createElement('div');
+  node.className = 'spell-chef';
+  const dots = document.createElement('div');
+  dots.className = 'think-dots';
+  dots.innerHTML = '<span>·</span><span>·</span><span>·</span>';
+  const img = document.createElement('img');
+  node.append(dots, img);
+
+  const state = { pose: 'think', frame: 0, t: 0 };
+  const show = () => { img.src = frames[state.pose][state.frame % frames[state.pose].length]; };
+
+  const sprite = {
+    node,
+    setPose(pose) {
+      if (!frames[pose] || state.pose === pose) return;
+      state.pose = pose;
+      state.frame = 0;
+      state.t = 0;
+      dots.style.visibility = pose === 'think' ? 'visible' : 'hidden';
+      node.classList.toggle('celebrate', pose === 'fistpump');
+      node.classList.toggle('slump', pose === 'facepalm');
+      show();
+    },
+    update(dt) {
+      state.t += dt;
+      if (state.t >= POSE_TIMING[state.pose]) {
+        state.t = 0;
+        state.frame++;
+        show();
+      }
+    },
+  };
+  show();
+  return sprite;
+}
+
 const cache = new Map();
 
 /** Returns a data-URL for the chef avatar ('m' | 'f'). */

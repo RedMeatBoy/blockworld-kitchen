@@ -20,7 +20,10 @@ try {
   await page.screenshot({ path: 'shots/1-title.png' });
 
   await tap(page, 'Enter');
-  await wait(800);
+  await wait(600);
+  await page.screenshot({ path: 'shots/10-engine.png' }); // engine check-in
+  await tap(page, 'Enter'); // "just right"
+  await wait(3200);         // chef's reply, then menu
   await page.screenshot({ path: 'shots/2-menu.png' });
 
   await tap(page, 'Enter');
@@ -46,8 +49,11 @@ try {
     [...document.querySelectorAll('.wtile.reveal')].map((t) => t.textContent).join('')
   );
   await wait(1800);
+  await page.screenshot({ path: 'shots/8-spell-think.png' });
   for (const ch of letters) { await tap(page, `Key${ch}`); await wait(120); }
-  await wait(2500); // praise + transition to knife
+  await wait(700);
+  await page.screenshot({ path: 'shots/9-spell-fistpump.png' });
+  await wait(1800); // praise + transition to knife
   await page.screenshot({ path: 'shots/6-knife.png' });
   await wait(1500);
   await page.screenshot({ path: 'shots/7-knife-b.png' });

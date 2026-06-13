@@ -18,7 +18,7 @@ import { QWERTY_ROWS, PRAISE_SPELLING, GENTLE_RETRY, gradeParams, computePerks }
 import { clearScene, clearToasts, confetti, el, hintBar, renderHud, showPhaseMap, toast } from '../ui.js';
 import { KnifeStation } from './knife.js';
 import { paintBackground } from '../background.js';
-import { customerImage, CUSTOMER_REACTIONS } from '../avatar.js';
+import { customerImage, CUSTOMER_REACTIONS, createChefSprite } from '../avatar.js';
 import { Music } from '../music.js';
 
 const GLANCE_SECONDS = 1.8;
@@ -133,6 +133,11 @@ export const serviceScene = {
       ['x', 'Hear word'],
       ['y', "Chef's Glance"],
     ]));
+
+    // the chef stands at the pass, thinking along with the player
+    this.chefSprite = createChefSprite(Save.data.avatar);
+    root.append(this.chefSprite.node);
+
     this.renderTiles();
     this.renderKbd();
   },
@@ -220,6 +225,7 @@ export const serviceScene = {
       Save.addTrust(pts);
       this.hud();
       Sfx.ding();
+      this.chefSprite?.setPose('fistpump');
       toast(`✅ ${line} (+${pts} trust)`, 'praise');
       speak(line);
       this.renderTiles(word.split('').map(() => true));
@@ -230,6 +236,7 @@ export const serviceScene = {
       const marks = word.split('').map((ch, i) => this.attempt[i] === ch);
       this.renderTiles(marks);
       Sfx.buzz();
+      this.chefSprite?.setPose('facepalm');
       const retryLine = GENTLE_RETRY[Math.floor(Math.random() * GENTLE_RETRY.length)];
       toast(`🍽️ One order of “${attempt}”?! We don't serve ${attempt} here! ${retryLine}`, 'oops', 3400);
       speak(`One order of ${attempt.toLowerCase()}? We don't serve that here! ${retryLine}`);
@@ -419,16 +426,19 @@ export const serviceScene = {
         break;
 
       case 'glance':
+        this.chefSprite?.update(dt);
         this.timer -= dt;
         this.updateCountBar();
         if (this.timer <= 0) {
           this.phase = 'spell';
           if (this.countBarNode) this.countBarNode.style.visibility = 'hidden';
+          this.chefSprite?.setPose('think');
           this.renderTiles();
         }
         break;
 
       case 'spell': {
+        this.chefSprite?.update(dt);
         // the music murmurs the target word every few seconds
         this.whisperTimer -= dt;
         if (this.whisperTimer <= 0) {
@@ -462,11 +472,13 @@ export const serviceScene = {
       }
 
       case 'check-pause':
+        this.chefSprite?.update(dt);
         this.timer -= dt;
         if (this.timer <= 0) this.submitAttempt();
         break;
 
       case 'retry-pause':
+        this.chefSprite?.update(dt);
         this.timer -= dt;
         if (this.timer <= 0) {
           // brief re-reveal, then back to spelling
@@ -479,8 +491,9 @@ export const serviceScene = {
         break;
 
       case 'spell-done':
+        this.chefSprite?.update(dt);
         this.timer -= dt;
-        if (this.timer <= 0) this.startKnife();
+        if (this.timer <= 0) { this.chefSprite = null; this.startKnife(); }
         break;
 
       case 'knife':

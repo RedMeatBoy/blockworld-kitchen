@@ -124,6 +124,11 @@ try {
       return /milkshake|crumble|soup|bites|bowl|sliders|tarts|cobs|buns|slice|tacos|toast|cakes/i.test(sub);
     });
     if (dishLeak) throw new Error('dish name visible during spelling (anti-cheat broken)');
+    if (order === 0) {
+      const hasChef = await page.evaluate(() => !!document.querySelector('.spell-chef img')?.src);
+      if (!hasChef) throw new Error('animated spelling chef missing');
+      console.log('✓ animated chef present on spelling screen');
+    }
     await wait(300);
     for (const ch of word) {
       await tap(page, `Key${ch}`);
