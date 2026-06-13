@@ -285,9 +285,9 @@ h1.game-title {
 .knife-banner .inner.info { background: var(--panel-light); color: var(--text); }
 
 .cut-quality {
-  position: absolute; top: 45%; left: 0; right: 0;
+  position: absolute; top: 42%; left: 0; right: 0;
   text-align: center;
-  font-size: clamp(22px, 4vw, 40px);
+  font-size: clamp(40px, 7.5vw, 80px);
   text-shadow: 3px 3px 0 var(--border);
   pointer-events: none;
   animation: floatup 1s ease-out forwards;
@@ -527,3 +527,44 @@ h1.game-title {
 .book-card .b-emoji { font-size: 30px; display: block; margin-bottom: 8px; }
 .book-card .b-word { font-size: 9px; color: var(--gold); letter-spacing: 1px; line-height: 1.6; word-break: break-all; }
 .book-card .b-count { font-size: 8px; color: var(--dim); margin-top: 6px; }
+
+/* ---------- phase map (visual schedule) ---------- */
+
+.phase-map {
+  position: absolute; bottom: 80px; left: 16px;
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 3px solid var(--border);
+  padding: 8px 12px;
+  z-index: 22;
+}
+.pm-step { font-size: 16px; opacity: 0.3; filter: grayscale(0.8); }
+.pm-step.now {
+  font-size: 22px; opacity: 1; filter: none;
+  animation: blink 1.4s steps(2, start) infinite;
+}
+.pm-arrow { font-size: 12px; color: var(--dim); }
+
+/* ---------- move break / body check ---------- */
+
+.break-panel {
+  background: var(--panel);
+  border: 4px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 30px 40px;
+  text-align: center;
+  max-width: 720px;
+}
+.break-panel .bk-emoji { font-size: 64px; display: block; margin-bottom: 16px; }
+.break-panel .bk-title { font-size: clamp(16px, 2.6vw, 26px); color: var(--gold); margin-bottom: 16px; }
+.break-panel .bk-text { font-size: clamp(11px, 1.7vw, 15px); color: var(--dim); line-height: 2; }
+
+.breath-dots { display: flex; gap: 18px; justify-content: center; margin-top: 20px; }
+.breath-dot {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--diamond);
+  animation: breathe 3s ease-in-out infinite;
+}
+.breath-dot:nth-child(2) { animation-delay: 1s; }
+.breath-dot:nth-child(3) { animation-delay: 2s; }
+@keyframes breathe { 0%, 100% { transform: scale(0.5); opacity: 0.3; } 50% { transform: scale(1.3); opacity: 1; } }

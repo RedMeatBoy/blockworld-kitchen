@@ -83,9 +83,11 @@ try {
   await textVisible(page, 'CHEF MAYA');
   console.log('✓ standard: X button switches chef');
 
-  await padPress(page, 0); // A
-  await textVisible(page, "TONIGHT'S MENU");
-  console.log('✓ standard: A button starts the shift');
+  await padPress(page, 0); // A → engine check-in
+  await textVisible(page, 'ENGINE RUNNING');
+  await padPress(page, 0); // A → confirm "just right"
+  await textVisible(page, "TONIGHT'S MENU", 10000);
+  console.log('✓ standard: A button starts the shift (via engine check-in)');
 
   // ---------- non-standard (Bluetooth) layout ----------
   await freshTitle(page);
@@ -100,9 +102,11 @@ try {
   await textVisible(page, 'CHEF MAYA');
   console.log('✓ bluetooth: X button (index 3) switches chef');
 
-  await padPress(page, 0); // A
-  await textVisible(page, "TONIGHT'S MENU");
-  console.log('✓ bluetooth: A button starts the shift');
+  await padPress(page, 0); // A → engine check-in
+  await textVisible(page, 'ENGINE RUNNING');
+  await padPress(page, 0); // A → confirm "just right"
+  await textVisible(page, "TONIGHT'S MENU", 10000);
+  console.log('✓ bluetooth: A button starts the shift (via engine check-in)');
 
   // compat-mode indicator
   const status = await page.evaluate(() => document.querySelector('.controller-status')?.textContent || '');

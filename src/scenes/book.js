@@ -8,13 +8,14 @@ import { Sfx, speak } from '../audio.js';
 import { go } from '../flow.js';
 import { Save } from '../save.js';
 import { WORD_INFO, GRADE_TIERS_VIEW, gradeLabel } from '../data/words.js';
-import { clearScene, clearHud, el, hintBar } from '../ui.js';
+import { clearScene, clearHud, el, hintBar, hidePhaseMap } from '../ui.js';
 import { paintBackground } from '../background.js';
 
 export const bookScene = {
   enter() {
     paintBackground('dining');
     clearHud();
+    hidePhaseMap();
     this.page = Save.data.grade;
     this.render();
     speak('The recipe book! Every word you spell first try becomes a mastered recipe.');

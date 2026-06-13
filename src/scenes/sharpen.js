@@ -14,7 +14,7 @@ import { Input } from '../input.js';
 import { Sfx, speak } from '../audio.js';
 import { go } from '../flow.js';
 import { Save, currentKnife } from '../save.js';
-import { clearScene, clearHud, el, hintBar } from '../ui.js';
+import { clearScene, clearHud, el, hintBar, showPhaseMap } from '../ui.js';
 import { paintBackground } from '../background.js';
 import { Music } from '../music.js';
 
@@ -24,6 +24,7 @@ const STROKE_TIME = 1.5; // seconds of steady hold per stroke
 export const sharpenScene = {
   enter({ trustEarned, results }) {
     paintBackground('night');
+    showPhaseMap('sharpen');
     Music.setMood('calm');
     this.trustEarned = trustEarned;
     this.results = results;

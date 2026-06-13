@@ -100,7 +100,7 @@ export function renderHud({ orders = null, orderIndex = 0, glances = null } = {}
   if (glances !== null) {
     const gbox = el('div', 'glance-box');
     gbox.append(el('span', '', "CHEF'S&nbsp;GLANCE&nbsp;"));
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < Math.max(3, glances); i++) {
       gbox.append(el('span', 'glance-eye' + (i < glances ? '' : ' used'), '👁'));
     }
     inner.append(gbox);
@@ -142,4 +142,29 @@ export function confetti(count = 60) {
     app.append(c);
     setTimeout(() => c.remove(), 3800);
   }
+}
+
+// Phase Map — a persistent visual schedule strip (a core ADHD support):
+// the player can always see where they are in the night and what comes next.
+const PHASES = [
+  ['menu', '📋'], ['cook', '🍳'], ['sharpen', '🔪'], ['stars', '⭐'], ['build', '🧱'],
+];
+
+export function showPhaseMap(stage) {
+  let node = document.querySelector('.phase-map');
+  if (!node) {
+    node = el('div', 'phase-map');
+    document.getElementById('app').append(node);
+  }
+  node.style.display = 'flex';
+  node.innerHTML = '';
+  for (const [key, icon] of PHASES) {
+    node.append(el('span', 'pm-step' + (key === stage ? ' now' : ''), icon));
+    if (key !== 'build') node.append(el('span', 'pm-arrow', '›'));
+  }
+}
+
+export function hidePhaseMap() {
+  const node = document.querySelector('.phase-map');
+  if (node) node.style.display = 'none';
 }

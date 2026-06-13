@@ -212,7 +212,11 @@ export const KnifeStation = {
     t.hairMat.color.set(look.hair);
     t.apronMat.color.set(look.accent);
     t.hairMeshes.forEach((m) => { m.visible = Save.data.avatar === 'f'; });
-    t.bladeMat.color.set(currentKnife(Save.data.trust).color);
+    const knifeTier = currentKnife(Save.data.trust);
+    t.bladeMat.color.set(knifeTier.color);
+    // cosmic tiers glow
+    t.bladeMat.emissive.set(knifeTier.glow ? knifeTier.color : 0x000000);
+    if (knifeTier.glow) t.bladeMat.emissive.multiplyScalar(0.55);
     t.zoneStrip.scale.x = this.tol / ZONE_TOL;
 
     // ---- build the voxel food ----
@@ -328,8 +332,9 @@ export const KnifeStation = {
   },
 
   sliceAt(x) {
+    // doubled separation: the halves jump apart dramatically
     for (const cube of this.cubes) {
-      cube.userData.offset += cube.userData.homeX < x ? -0.18 : 0.18;
+      cube.userData.offset += cube.userData.homeX < x ? -0.36 : 0.36;
     }
     this.chopT = 0.34; // swing the chef's arm
     Sfx.chop();
@@ -343,9 +348,9 @@ export const KnifeStation = {
     this.state = 'serving';
     this.serveTimer = 1.1;
     for (const cube of this.cubes) {
-      cube.userData.vy = 2.5 + Math.random() * 2.5;
-      cube.userData.vx = (Math.random() - 0.5) * 3;
-      cube.userData.spin = (Math.random() - 0.5) * 8;
+      cube.userData.vy = 3.8 + Math.random() * 3.8;
+      cube.userData.vx = (Math.random() - 0.5) * 5;
+      cube.userData.spin = (Math.random() - 0.5) * 12;
     }
     Sfx.plonk();
     initThree().zoneStrip.visible = false;
@@ -366,10 +371,10 @@ export const KnifeStation = {
     t.chefGroup.position.x = this.indX - 0.95; // shoulder lines the knife up with the cut line
     t.chefGroup.position.y = Math.sin(this.time * 2.2) * 0.04; // idle breathing
 
-    // chop swing: fast down, ease back up
+    // chop swing: fast down, ease back up — doubled amplitude for drama
     if (this.chopT > 0) this.chopT = Math.max(0, this.chopT - dt);
     const chopPhase = this.chopT > 0.22 ? (0.34 - this.chopT) / 0.12 : this.chopT / 0.22;
-    t.armPivot.rotation.x = 0.06 + chopPhase * 0.5;
+    t.armPivot.rotation.x = 0.06 + chopPhase * 1.0;
 
     // cube physics during serve, gentle settle otherwise
     for (const cube of this.cubes) {

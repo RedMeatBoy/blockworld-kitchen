@@ -87,18 +87,26 @@ try {
   console.log('✓ recipe book opens and closes');
   await tap(page, 'Enter');
 
+  // --- engine check-in (ADHD self-labeling) ---
+  await textVisible(page, 'ENGINE RUNNING', 8000);
+  await tap(page, 'Enter'); // "just right"
+  console.log('✓ engine check-in');
+
   // --- menu preview + back-to-title ---
-  await textVisible(page, "TONIGHT'S MENU");
+  await textVisible(page, "TONIGHT'S MENU", 8000);
   await tap(page, 'Backspace'); // back to title to change grade if needed
   await textVisible(page, 'BLOCKWORLD', 5000);
-  await tap(page, 'Enter');     // and forward again
-  await textVisible(page, "TONIGHT'S MENU", 5000);
+  await tap(page, 'Enter');     // forward again (via engine check-in)
+  await textVisible(page, 'ENGINE RUNNING', 8000);
+  await tap(page, 'Enter');
+  await textVisible(page, "TONIGHT'S MENU", 8000);
   console.log('✓ menu preview + back-to-title works');
   await tap(page, 'Enter');
 
   // --- service: 4 orders ---
   for (let order = 0; order < 4; order++) {
-    await textVisible(page, 'TAKE THE ORDER');
+    // the mid-service Body Check pause (8s, no input) may run before this order
+    await textVisible(page, 'TAKE THE ORDER', 25000);
     await tap(page, 'Enter');
 
     // word reveal: capture the letters from the reveal tiles
@@ -148,6 +156,11 @@ try {
     console.log(`✓ order ${order + 1}: served`);
   }
 
+  // --- move break (real-world exercise burst) ---
+  await textVisible(page, 'MOVE BREAK', 15000);
+  await tap(page, 'Enter'); // "done!"
+  console.log('✓ move break');
+
   // --- sharpening ---
   await textVisible(page, 'SERVICE IS OVER', 20000);
   console.log('✓ sharpening scene');
@@ -170,8 +183,13 @@ try {
   console.log('✓ word recap screen');
   await tap(page, 'Enter');
 
+  // --- first-served memory quiz ---
+  await textVisible(page, 'SERVE FIRST', 8000);
+  await tap(page, 'Enter'); // pick whatever the cursor is on
+  console.log('✓ memory quiz');
+
   // --- decoration pick ---
-  await textVisible(page, 'PICK A BLOCK', 8000);
+  await textVisible(page, 'PICK A BLOCK', 10000);
   console.log('✓ decoration pick');
   await tap(page, 'Enter');
 

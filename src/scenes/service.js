@@ -15,7 +15,7 @@ import { Sfx, speak, speakLetter } from '../audio.js';
 import { go } from '../flow.js';
 import { Save } from '../save.js';
 import { QWERTY_ROWS, PRAISE_SPELLING, GENTLE_RETRY, gradeParams, computePerks } from '../data/words.js';
-import { clearScene, clearToasts, confetti, el, hintBar, renderHud, toast } from '../ui.js';
+import { clearScene, clearToasts, confetti, el, hintBar, renderHud, showPhaseMap, toast } from '../ui.js';
 import { KnifeStation } from './knife.js';
 import { paintBackground } from '../background.js';
 import { customerImage, CUSTOMER_REACTIONS } from '../avatar.js';
@@ -26,6 +26,7 @@ const GLANCE_SECONDS = 1.8;
 export const serviceScene = {
   enter({ menu }) {
     paintBackground('kitchen');
+    showPhaseMap('cook');
     Music.setMood('upbeat');
     this.menu = menu;
     this.params = gradeParams(Save.data.grade);
@@ -37,6 +38,7 @@ export const serviceScene = {
     this.results = []; // per-order: { word, firstTry, glanceUsed, emoji }
     this.streak = 0;   // consecutive first-try spellings
     this.whisperTimer = 30;
+    this.didBodyCheck = false;
     this.startOrder();
   },
 
@@ -336,14 +338,69 @@ export const serviceScene = {
     this.orderIndex++;
     clearToasts();
     if (this.orderIndex >= this.menu.length) {
-      Save.save();
-      go('sharpen', {
-        trustEarned: Save.data.trust - this.trustAtStart,
-        results: this.results,
-      });
+      this.startMoveBreak();
+    } else if (!this.didBodyCheck && this.orderIndex === Math.floor(this.menu.length / 2)) {
+      this.startBodyCheck();
     } else {
       this.startOrder();
     }
+  },
+
+  // ---- Body Check: interoception practice, once per night mid-service.
+  // No buttons, no score — just a guided pause to notice body signals
+  // (thirst, bathroom, wiggles), the exact cue-reading ADHD kids miss.
+  startBodyCheck() {
+    this.didBodyCheck = true;
+    this.phase = 'bodycheck';
+    this.timer = 8;
+    const root = clearScene();
+    const stack = el('div', 'center-stack');
+    const panel = el('div', 'break-panel pop-in');
+    panel.append(el('span', 'bk-emoji', '🧘'));
+    panel.append(el('div', 'bk-title', 'QUICK BODY CHECK, CHEF'));
+    panel.append(el('div', 'bk-text',
+      'Thirsty? Need the bathroom? Wiggly?<br>Press your feet into the floor and breathe with the dots…'));
+    const dots = el('div', 'breath-dots');
+    dots.append(el('div', 'breath-dot'), el('div', 'breath-dot'), el('div', 'breath-dot'));
+    panel.append(dots);
+    stack.append(panel);
+    root.append(stack);
+    speak('Quick body check, chef! Thirsty? Need the bathroom? Press your feet into the floor and take a slow breath with me.', { rate: 0.85 });
+  },
+
+  // ---- Move Break: the single best-evidenced ADHD regulation tool is
+  // intense movement. Before the wind-down, a real-world exercise burst.
+  startMoveBreak() {
+    this.phase = 'movebreak';
+    this.timer = 45;
+    this.timerTotal = 45;
+    const moves = [
+      ['🤸', '10 JUMPING JACKS'],
+      ['🧱', 'WALL-SIT WHILE YOU COUNT TO 15'],
+      ['🐰', '10 BIG BUNNY HOPS'],
+      ['🏃', 'RUN ON THE SPOT TO 20'],
+    ];
+    const [emoji, move] = moves[(Save.data.day + this.menu.length) % moves.length];
+    this.moveName = move;
+    const root = clearScene();
+    const stack = el('div', 'center-stack');
+    const panel = el('div', 'break-panel pop-in');
+    panel.append(el('span', 'bk-emoji', emoji));
+    panel.append(el('div', 'bk-title', '🔔 SHIFT CHANGE — MOVE BREAK!'));
+    panel.append(el('div', 'bk-text', `${move}<br>then press A for +5 trust!`));
+    stack.append(panel);
+    stack.append(this.makeCountBar());
+    root.append(stack);
+    root.append(hintBar([['a', 'Done!'], ['b', 'Skip']]));
+    speak(`Shift change! Time to move that body, chef. ${move.toLowerCase()}, then press A!`, { rate: 0.9 });
+  },
+
+  finishService() {
+    Save.save();
+    go('sharpen', {
+      trustEarned: Save.data.trust - this.trustAtStart,
+      results: this.results,
+    });
   },
 
   // ---------------- per-frame ----------------
@@ -433,6 +490,25 @@ export const serviceScene = {
       case 'served':
         this.timer -= dt;
         if (this.timer <= 0) this.nextOrder();
+        break;
+
+      case 'bodycheck':
+        this.timer -= dt;
+        if (this.timer <= 0) this.startOrder();
+        break;
+
+      case 'movebreak':
+        this.timer -= dt;
+        this.updateCountBar();
+        if (Input.pressed('a')) {
+          Save.addTrust(5);
+          Save.data.stats.moveBreaks++;
+          Sfx.fanfare();
+          toast('💪 Moved like a champion! +5 trust', 'praise');
+          this.finishService();
+        } else if (Input.pressed('b') || this.timer <= 0) {
+          this.finishService();
+        }
         break;
     }
   },

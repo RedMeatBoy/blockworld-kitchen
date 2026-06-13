@@ -29,6 +29,12 @@ const DEFAULTS = {
     noCutHeld: 0,
     sharpenSessions: 0,
     bestStreak: 0,
+    engineSlow: 0,
+    engineRight: 0,
+    engineRacing: 0,
+    moveBreaks: 0,
+    quizRight: 0,
+    quizTotal: 0,
   },
   // rolling record of recent first-try results, drives word tier adaptation
   recentSpelling: [],
@@ -88,11 +94,22 @@ export const Save = {
 };
 
 export const KNIVES = [
-  { name: 'Wooden Training Knife', trust: 0,   color: '#8a5a2b', emoji: '🟫' },
-  { name: 'Stone Paring Knife',    trust: 90,  color: '#9a9a9a', emoji: '🪨' },
-  { name: "Iron Chef's Knife",     trust: 220, color: '#d8d8e0', emoji: '⬜' },
-  { name: 'Golden Santoku',        trust: 400, color: '#f5c84b', emoji: '🟨' },
-  { name: 'Diamond Cleaver',       trust: 650, color: '#5ee6e0', emoji: '💎' },
+  { name: 'Wooden Training Knife', trust: 0,    color: '#8a5a2b', emoji: '🟫' },
+  { name: 'Stone Paring Knife',    trust: 90,   color: '#9a9a9a', emoji: '🪨' },
+  { name: "Iron Chef's Knife",     trust: 220,  color: '#d8d8e0', emoji: '⬜' },
+  { name: 'Golden Santoku',        trust: 400,  color: '#f5c84b', emoji: '🟨' },
+  { name: 'Diamond Cleaver',       trust: 650,  color: '#5ee6e0', emoji: '💎' },
+  // -- the cosmic tiers: glowing blades for chefs with legendary control --
+  { name: 'Obsidian Edge',         trust: 950,  color: '#7a4fd9', emoji: '🟪', glow: true },
+  { name: 'Laser Cutter Knife',    trust: 1300, color: '#ff3b3b', emoji: '🔴', glow: true },
+  { name: 'Plasma Knife',          trust: 1700, color: '#3bd9ff', emoji: '🔵', glow: true },
+  { name: 'Ion Blade',             trust: 2150, color: '#8aff3b', emoji: '🟢', glow: true },
+  { name: 'Laser Sword Knife',     trust: 2650, color: '#3bff8a', emoji: '⚔️', glow: true },
+  { name: 'Antimatter Cleaver',    trust: 3200, color: '#ff3bd9', emoji: '🌀', glow: true },
+  { name: 'Photon Santoku',        trust: 3800, color: '#fff23b', emoji: '✨', glow: true },
+  { name: 'Quasar Edge',           trust: 4450, color: '#ff8a3b', emoji: '☄️', glow: true },
+  { name: 'Nebula Blade',          trust: 5150, color: '#b03bff', emoji: '🌌', glow: true },
+  { name: 'Singularity Knife',     trust: 5900, color: '#e8e8ff', emoji: '🌠', glow: true },
 ];
 
 export function currentKnife(trust) {

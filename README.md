@@ -146,11 +146,16 @@ transition warning for kids who struggle to stop a preferred activity.
 | Knife Station: cut only when the moving line is in the zone | "Slow down for accuracy" — counters impulsive rushing |
 | **WAIT… / NOW!** hold calls | Go/no-go response inhibition (the core ADHD deficit) |
 | No-cut orders (press B, never A) | Withholding as a *win condition* — impulse control framed as elite chef discipline |
-| **Knife Trust** progression (wooden → stone → iron → gold → diamond) | Identity-based motivation: the kitchen trusts you with sharper tools because you've shown control |
+| **Knife Trust** progression (wooden → stone → iron → gold → diamond → ten glowing cosmic tiers up to the Singularity Knife) | Identity-based motivation: the kitchen trusts you with sharper tools because you've shown control |
 | Sharpening wind-down with breath cues | Disguised mindfulness/regulation practice |
 | Persistent restaurant building, where every block grants a kitchen power | Creation-based reward with real in-game meaning (works where sticker charts don't) |
 | Menu preview, order-progress dots, last-order warning | Visual schedule + predictable transitions |
 | Grade bands + adaptive tiers | Right-sized challenge; no repetition of mastered material |
+| **Engine Check-in** before each shift (🐢 slow / 😊 just right / 🚀 racing) | Alert Program-style arousal self-labeling, with matched micro-strategies (grounding breaths for a racing engine) |
+| **Move Break** after the last order (jumping jacks, wall-sits…) | Intense physical movement — the best-evidenced ADHD regulation tool — built into the session structure |
+| Mid-service **Body Check** pause (thirsty? bathroom? wiggly?) | Interoception practice: noticing body signals before they become accidents |
+| **First-Served memory quiz** at night's end | Episodic working memory — recalling the sequence of your own evening |
+| **Phase Map** strip (📋 › 🍳 › 🔪 › ⭐ › 🧱) always on screen | Visual schedule: always know where you are and what comes next |
 
 ### Parent dashboard
 

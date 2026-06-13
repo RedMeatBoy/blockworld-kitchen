@@ -8,13 +8,14 @@ import { Sfx, speak } from '../audio.js';
 import { go } from '../flow.js';
 import { Save } from '../save.js';
 import { pickMenu, gradeParams, gradeLabel, computePerks, describePerks } from '../data/words.js';
-import { clearScene, el, hintBar, renderHud } from '../ui.js';
+import { clearScene, el, hintBar, renderHud, showPhaseMap } from '../ui.js';
 import { paintBackground } from '../background.js';
 import { Music } from '../music.js';
 
 export const menuScene = {
   enter() {
     paintBackground('dining');
+    showPhaseMap('menu');
     const d = Save.data;
     Music.setSong(d.day - 1);
     this.menu = pickMenu(d.grade, d.wordTier, gradeParams(d.grade).orders);

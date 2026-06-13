@@ -8,13 +8,14 @@ import { Sfx, speak } from '../audio.js';
 import { go } from '../flow.js';
 import { Save, currentKnife } from '../save.js';
 import { pickDecoChoices } from '../data/words.js';
-import { clearScene, clearHud, el, hintBar } from '../ui.js';
+import { clearScene, clearHud, confetti, el, hintBar, showPhaseMap } from '../ui.js';
 import { paintBackground } from '../background.js';
 import { Music } from '../music.js';
 
 export const resultsScene = {
   enter({ trustEarned, results }) {
     paintBackground('dining');
+    showPhaseMap('stars');
     Music.setMood('upbeat');
     clearHud();
     this.phase = 'stars';
@@ -79,6 +80,44 @@ export const resultsScene = {
     speak(`Tonight you spelled: ${words}. Wonderful work.`, { rate: 0.85 });
   },
 
+  // ---- First-Served quiz: one episodic-memory question about the night.
+  // Recalling the sequence of your own evening is exactly the working-memory
+  // muscle that ADHD strains — one question, no penalty, bonus if right.
+  startQuiz() {
+    this.phase = 'quiz';
+    this.quizCursor = 0;
+    this.quizAnswered = false;
+    const first = this.resultsList[0];
+    const others = this.resultsList.slice(1);
+    this.quizChoices = [first, ...others.slice(0, 2)]
+      .filter(Boolean)
+      .sort(() => Math.random() - 0.5);
+    this.quizCorrect = this.quizChoices.findIndex((c) => c === first);
+
+    const root = clearScene();
+    const stack = el('div', 'center-stack');
+    stack.append(el('div', 'subtitle', '🧠 MEMORY CHECK, CHEF!'));
+    stack.append(el('h1', 'game-title', 'WHICH DISH DID YOU<br>SERVE FIRST TONIGHT?'));
+    this.quizRow = el('div', 'deco-row');
+    stack.append(this.quizRow);
+    this.quizReply = el('div', 'subtitle');
+    stack.append(this.quizReply);
+    root.append(stack);
+    root.append(hintBar([['a', 'Pick'], ['dpad', 'Choose']]));
+    this.renderQuiz();
+    speak('Memory check! Which dish did you serve first tonight?');
+  },
+
+  renderQuiz() {
+    this.quizRow.innerHTML = '';
+    this.quizChoices.forEach((c, i) => {
+      const card = el('div', 'deco-card' + (i === this.quizCursor ? ' cursor' : ''));
+      card.append(el('span', 'd-emoji', c.emoji || '🍽️'));
+      card.append(document.createTextNode(c.word));
+      this.quizRow.append(card);
+    });
+  },
+
   startDecoPick() {
     this.phase = 'deco';
     this.choices = pickDecoChoices(Save.data.decorations);
@@ -110,7 +149,33 @@ export const resultsScene = {
     if (this.phase === 'stars') {
       if (Input.pressed('a')) { Sfx.select(); this.startRecap(); }
     } else if (this.phase === 'recap') {
-      if (Input.pressed('a')) { Sfx.select(); this.startDecoPick(); }
+      if (Input.pressed('a')) { Sfx.select(); this.startQuiz(); }
+    } else if (this.phase === 'quiz') {
+      if (this.quizAnswered) {
+        this.quizTimer -= 1 / 60;
+        if (this.quizTimer <= 0 || Input.pressed('a')) this.startDecoPick();
+        return;
+      }
+      if (Input.nav('left')) { this.quizCursor = Math.max(0, this.quizCursor - 1); Sfx.move(); this.renderQuiz(); }
+      if (Input.nav('right')) { this.quizCursor = Math.min(this.quizChoices.length - 1, this.quizCursor + 1); Sfx.move(); this.renderQuiz(); }
+      if (Input.pressed('a')) {
+        this.quizAnswered = true;
+        this.quizTimer = 2.2;
+        Save.data.stats.quizTotal++;
+        if (this.quizCursor === this.quizCorrect) {
+          Save.data.stats.quizRight++;
+          Save.addTrust(5);
+          Sfx.fanfare();
+          confetti(40);
+          this.quizReply.innerHTML = '✅ SHARP MEMORY! +5 trust';
+          speak('Sharp memory, chef! Five bonus trust!');
+        } else {
+          Sfx.back();
+          const right = this.quizChoices[this.quizCorrect];
+          this.quizReply.innerHTML = `It was the ${right.emoji} ${right.word} — good thinking anyway!`;
+          speak(`Close! It was the ${right.word.toLowerCase()}. Good thinking anyway!`);
+        }
+      }
     } else if (this.phase === 'deco') {
       if (Input.nav('left')) { this.decoCursor = Math.max(0, this.decoCursor - 1); Sfx.move(); this.renderDecoRow(); }
       if (Input.nav('right')) { this.decoCursor = Math.min(this.choices.length - 1, this.decoCursor + 1); Sfx.move(); this.renderDecoRow(); }

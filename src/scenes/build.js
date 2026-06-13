@@ -6,7 +6,7 @@ import { Input } from '../input.js';
 import { Sfx, speak } from '../audio.js';
 import { go } from '../flow.js';
 import { Save } from '../save.js';
-import { clearScene, el, hintBar } from '../ui.js';
+import { clearScene, el, hintBar, showPhaseMap } from '../ui.js';
 import { paintBackground } from '../background.js';
 
 const COLS = 10;
@@ -15,6 +15,7 @@ const ROWS = 5;
 export const buildScene = {
   enter({ newDeco }) {
     paintBackground('dining');
+    showPhaseMap('build');
     this.newDeco = newDeco || null;
     this.cursor = { x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2) };
     this.placed = !newDeco;

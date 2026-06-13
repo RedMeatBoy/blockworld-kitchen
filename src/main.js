@@ -13,6 +13,7 @@ import { sharpenScene } from './scenes/sharpen.js';
 import { resultsScene } from './scenes/results.js';
 import { buildScene } from './scenes/build.js';
 import { bookScene } from './scenes/book.js';
+import { engineScene } from './scenes/engine.js';
 
 Save.load();
 setVoiceProfile(Save.data.voice);
@@ -25,6 +26,7 @@ registerScenes({
   results: resultsScene,
   build: buildScene,
   book: bookScene,
+  engine: engineScene,
 });
 
 // ---------- pause + parent dashboard overlays ----------
@@ -79,8 +81,10 @@ function openStats() {
     `<u>Cut precision (slowing down for accuracy)</u><br>` +
     `Cuts attempted: <b>${s.cutsTotal}</b> &nbsp;·&nbsp; Perfect: <b>${pct(s.cutsPerfect, s.cutsTotal)}</b>` +
     ` &nbsp;·&nbsp; In-zone: <b>${pct(s.cutsPerfect + s.cutsGood, s.cutsTotal)}</b><br><br>` +
-    `<u>Regulation</u><br>` +
-    `Sharpening wind-downs completed: <b>${s.sharpenSessions}</b><br><br>` +
+    `<u>Regulation & self-awareness</u><br>` +
+    `Sharpening wind-downs: <b>${s.sharpenSessions}</b> &nbsp;·&nbsp; Move breaks done: <b>${s.moveBreaks}</b><br>` +
+    `Engine check-ins — slow: <b>${s.engineSlow}</b> · just right: <b>${s.engineRight}</b> · racing: <b>${s.engineRacing}</b><br>` +
+    `Memory quiz correct: <b>${pct(s.quizRight, s.quizTotal)}</b> (${s.quizRight}/${s.quizTotal})<br><br>` +
     `<span style="font-size:9px;opacity:.7">Press SELECT (or Tab) to close · keyboard R+Shift resets all progress</span>`;
   panel.append(table);
   node.append(panel);

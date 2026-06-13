@@ -3,7 +3,7 @@ import { Sfx, speak, unlockAudio } from '../audio.js';
 import { go } from '../flow.js';
 import { Save, currentKnife } from '../save.js';
 import { gradeLabel } from '../data/words.js';
-import { clearScene, clearHud, el, hintBar } from '../ui.js';
+import { clearScene, clearHud, el, hintBar, hidePhaseMap } from '../ui.js';
 import { paintBackground } from '../background.js';
 import { chefImage, chefName } from '../avatar.js';
 import { Music } from '../music.js';
@@ -11,6 +11,7 @@ import { Music } from '../music.js';
 export const titleScene = {
   enter() {
     clearHud();
+    hidePhaseMap();
     paintBackground('dining');
     const root = clearScene();
 
@@ -115,9 +116,9 @@ export const titleScene = {
       if (Save.data.music) Music.start();
       Sfx.select();
       speak(Save.data.day > 1
-        ? `Welcome back, ${chefName(Save.data.avatar).toLowerCase()}! Day ${Save.data.day}. Let's see tonight's menu.`
-        : `Welcome to Blockworld Kitchen, chef! Let me show you tonight's menu.`);
-      go('menu');
+        ? `Welcome back, ${chefName(Save.data.avatar).toLowerCase()}! Day ${Save.data.day}.`
+        : `Welcome to Blockworld Kitchen, chef!`);
+      go('engine');
     }
   },
 
