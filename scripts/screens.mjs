@@ -16,7 +16,10 @@ try {
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: 'load' });
-  await wait(800);
+  await wait(700);
+  await page.screenshot({ path: 'shots/0-profile.png' });
+  await tap(page, 'Enter'); // pick player 1
+  await wait(700);
   await page.screenshot({ path: 'shots/1-title.png' });
 
   await tap(page, 'Enter');

@@ -1,8 +1,25 @@
 // Persistent progress + parent-dashboard stats, stored in localStorage.
+//
+// Three independent player profiles share the same code; each lives under its
+// own localStorage key so siblings keep separate days, knife trust, recipe
+// books and settings. The active profile index is remembered between visits.
 
-const KEY = 'blockworld-kitchen-save-v1';
+const BASE = 'blockworld-kitchen-save-v1';
+const LEGACY_KEY = BASE;                 // the old single-save key (pre-profiles)
+const ACTIVE_KEY = 'blockworld-kitchen-active';
+export const NPROFILES = 3;
+const profileKey = (i) => `${BASE}-p${i}`;
+const DEFAULT_NAMES = ['CHEF ONE', 'CHEF TWO', 'CHEF THREE'];
+
+// fun names the rename button cycles through
+export const NAME_PRESETS = [
+  'CHEF ONE', 'CHEF TWO', 'CHEF THREE', 'ERIC', 'EVA', 'MAX', 'MAYA', 'ACE',
+  'PIP', 'REX', 'ZOE', 'LEO', 'MIA', 'SAM', 'KAI', 'NOVA', 'BOLT', 'SPARK',
+  'TURBO', 'DASH', 'CHOMP', 'SIZZLE', 'WHISK',
+];
 
 const DEFAULTS = {
+  name: 'CHEF ONE',
   day: 1,
   trust: 0,
   grade: 2,              // 0 (K)..6, picked on the title screen (Alberta curriculum bands)
@@ -42,26 +59,96 @@ const DEFAULTS = {
 
 function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
 
+function freshProfile(i) {
+  const d = clone(DEFAULTS);
+  d.name = DEFAULT_NAMES[i] || `CHEF ${i + 1}`;
+  return d;
+}
+
 export const Save = {
   data: null,
+  activeIndex: 0,
 
-  load() {
+  /** Read a profile slot's raw saved object, or null if empty. */
+  readProfile(i) {
     try {
-      const raw = localStorage.getItem(KEY);
-      this.data = raw ? { ...clone(DEFAULTS), ...JSON.parse(raw) } : clone(DEFAULTS);
-      this.data.stats = { ...clone(DEFAULTS.stats), ...(this.data.stats || {}) };
+      const raw = localStorage.getItem(profileKey(i));
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const merged = { ...clone(DEFAULTS), ...parsed };
+      merged.stats = { ...clone(DEFAULTS.stats), ...(parsed.stats || {}) };
+      if (!merged.name) merged.name = DEFAULT_NAMES[i] || `CHEF ${i + 1}`;
+      return merged;
     } catch {
-      this.data = clone(DEFAULTS);
+      return null;
     }
+  },
+
+  /** Boot: migrate any legacy single save into slot 0, then load the active slot. */
+  init() {
+    try {
+      // one-time migration from the pre-profiles single save
+      if (!localStorage.getItem(profileKey(0))) {
+        const legacy = localStorage.getItem(LEGACY_KEY);
+        if (legacy && legacy !== '{}') {
+          localStorage.setItem(profileKey(0), legacy);
+          localStorage.removeItem(LEGACY_KEY);
+        }
+      }
+      const stored = parseInt(localStorage.getItem(ACTIVE_KEY) ?? '0', 10);
+      this.activeIndex = Number.isInteger(stored) && stored >= 0 && stored < NPROFILES ? stored : 0;
+    } catch {
+      this.activeIndex = 0;
+    }
+    this.data = this.readProfile(this.activeIndex) || freshProfile(this.activeIndex);
     return this.data;
   },
 
+  /** Kept for backwards-compatibility; init() is the real entry point. */
+  load() { return this.data || this.init(); },
+
+  /** Summaries for the profile-select screen. */
+  listProfiles() {
+    const out = [];
+    for (let i = 0; i < NPROFILES; i++) {
+      const p = this.readProfile(i);
+      out.push(p
+        ? { index: i, exists: true, name: p.name, day: p.day, trust: p.trust,
+            avatar: p.avatar, bestStreak: p.stats?.bestStreak || 0, grade: p.grade }
+        : { index: i, exists: false, name: DEFAULT_NAMES[i] });
+    }
+    return out;
+  },
+
+  /** Switch to a profile slot (loading it, or creating it fresh). */
+  useProfile(i) {
+    this.activeIndex = i;
+    try { localStorage.setItem(ACTIVE_KEY, String(i)); } catch { /* ignore */ }
+    this.data = this.readProfile(i) || freshProfile(i);
+    this.save();
+    return this.data;
+  },
+
+  eraseProfile(i) {
+    try { localStorage.removeItem(profileKey(i)); } catch { /* ignore */ }
+  },
+
+  rename(name) {
+    this.data.name = name;
+    this.save();
+  },
+
   save() {
-    try { localStorage.setItem(KEY, JSON.stringify(this.data)); } catch { /* ignore */ }
+    try {
+      localStorage.setItem(profileKey(this.activeIndex), JSON.stringify(this.data));
+      localStorage.setItem(ACTIVE_KEY, String(this.activeIndex));
+    } catch { /* ignore */ }
   },
 
   reset() {
-    this.data = clone(DEFAULTS);
+    const name = this.data?.name;
+    this.data = freshProfile(this.activeIndex);
+    if (name) this.data.name = name;
     this.save();
   },
 

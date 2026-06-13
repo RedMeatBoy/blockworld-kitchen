@@ -56,6 +56,13 @@ try {
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: 'load' });
 
+  // --- profile select (boot scene) ---
+  await textVisible(page, 'CHOOSE YOUR');
+  const slotCount = await page.evaluate(() => document.querySelectorAll('.profile-card').length);
+  if (slotCount !== 3) throw new Error(`expected 3 profile slots, saw ${slotCount}`);
+  console.log('✓ profile select shows 3 players');
+  await tap(page, 'Enter'); // play player 1
+
   // --- title + grade selector ---
   await textVisible(page, 'BLOCKWORLD');
   await textVisible(page, 'GRADE 2'); // default grade

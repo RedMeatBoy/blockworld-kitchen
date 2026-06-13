@@ -17,6 +17,7 @@ export const titleScene = {
 
     const stack = el('div', 'center-stack');
     stack.append(el('h1', 'game-title', 'BLOCKWORLD<br>KITCHEN'));
+    stack.append(el('div', 'player-tag', `👤 ${Save.data.name}`));
 
     const d = Save.data;
     const knife = currentKnife(d.trust);
@@ -52,6 +53,7 @@ export const titleScene = {
     root.append(hintBar([
       ['a', 'Start shift'],
       ['b', 'Recipe book'],
+      ['y', 'Switch player'],
       ['dpad', '◄► grade · ▲▼ chef'],
       ['select', 'Parent stats'],
     ]));
@@ -66,7 +68,7 @@ export const titleScene = {
     this.chefNode.append(img);
     const info = el('div');
     info.append(el('div', 'chef-name', chefName(kind)));
-    info.append(el('div', 'chef-hint', '▲▼ or X: switch chef'));
+    info.append(el('div', 'chef-hint', '▲▼ or X: switch chef'));  // (Y = switch player)
     this.chefNode.append(info);
   },
 
@@ -102,8 +104,13 @@ export const titleScene = {
     // spelling), and some controllers report non-standard button indices,
     // so a single binding isn't reliable.
     const typedX = Input.takeLetters().includes('X');
-    if (Input.pressed('x') || Input.pressed('y') || typedX || Input.nav('up') || Input.nav('down')) {
+    if (Input.pressed('x') || typedX || Input.nav('up') || Input.nav('down')) {
       this.switchChef();
+    }
+    if (Input.pressed('y')) {
+      Sfx.select();
+      go('profile');
+      return;
     }
     if (Input.pressed('b')) {
       unlockAudio();

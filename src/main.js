@@ -14,8 +14,9 @@ import { resultsScene } from './scenes/results.js';
 import { buildScene } from './scenes/build.js';
 import { bookScene } from './scenes/book.js';
 import { engineScene } from './scenes/engine.js';
+import { profileScene } from './scenes/profile.js';
 
-Save.load();
+Save.init();
 setVoiceProfile(Save.data.voice);
 
 registerScenes({
@@ -27,6 +28,7 @@ registerScenes({
   build: buildScene,
   book: bookScene,
   engine: engineScene,
+  profile: profileScene,
 });
 
 // ---------- pause + parent dashboard overlays ----------
@@ -138,8 +140,9 @@ function frame(now) {
     } else if (overlayMode === 'pause' && (Input.pressed('a') || Input.pressed('start'))) closeOverlay();
     else if (overlayMode === 'stats' && (Input.pressed('select') || Input.pressed('b'))) closeOverlay();
   } else {
-    if (Input.pressed('start') && sceneName() !== 'title') { unlockAudio(); openPause(); }
-    else if (Input.pressed('select')) { unlockAudio(); openStats(); }
+    const scene = sceneName();
+    if (Input.pressed('start') && scene !== 'title' && scene !== 'profile') { unlockAudio(); openPause(); }
+    else if (Input.pressed('select') && scene !== 'profile') { unlockAudio(); openStats(); }
     else {
       // one bad frame must never freeze the whole game for a kid mid-session
       try { updateScene(dt); } catch (err) { console.error('scene update error:', err); }
@@ -150,5 +153,5 @@ function frame(now) {
 }
 
 updateControllerStatus(false);
-go('title');
+go('profile');
 requestAnimationFrame(frame);

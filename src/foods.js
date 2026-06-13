@@ -324,6 +324,49 @@ function peanut({ c = 0xc9925e }) {
   return out;
 }
 
+
+function eyeball({ iris = 0x5ab2e8 }) {
+  const out = sphere({ c: 0xf6f3ec, rx: 3, ry: 3, rz: 2 });
+  // iris + pupil + a couple of red veins on the camera side
+  out.push({ x: 0, y: 4, z: 2, c: iris });
+  out.push({ x: -1, y: 4, z: 2, c: iris });
+  out.push({ x: 1, y: 4, z: 2, c: iris });
+  out.push({ x: 0, y: 3, z: 2, c: iris });
+  out.push({ x: 0, y: 4, z: 3, c: 0x22232b }); // pupil pops out a touch
+  out.push({ x: 2, y: 5, z: 1, c: 0xd9453a });
+  out.push({ x: -2, y: 2, z: 1, c: 0xd9453a });
+  return out;
+}
+
+function worm({ c }) {
+  // a fat wiggly gummy worm along the cut axis
+  const out = [];
+  for (let x = -5; x <= 5; x++) {
+    const y = 1 + Math.round(1.4 * Math.sin(x * 0.9));
+    for (const [dy, dz] of [[0, 0], [1, 0], [0, 1], [0, -1]]) {
+      out.push({ x, y: y + dy, z: dz, c: shadeAt((x + 5) % 4 < 2 ? c : dark(c, 0.7), x, y, dz) });
+    }
+  }
+  out.push({ x: -5, y: 3, z: 1, c: 0x22232b }); // eye
+  return out;
+}
+
+function tentacle({ c }) {
+  // tapered arm with suckers down the underside
+  const out = [];
+  for (let x = -5; x <= 5; x++) {
+    const t = (x + 5) / 11;
+    const r = Math.max(0, Math.round(2.2 * (1 - t)));
+    for (let y = -r; y <= r; y++) {
+      for (let z = -r; z <= r; z++) {
+        if (Math.abs(y) + Math.abs(z) <= r + 1) out.push({ x, y: y + 3, z, c: shadeAt(c, x, y, z) });
+      }
+    }
+    if (x % 2 === 0 && r > 0) out.push({ x, y: 3 - r, z: 0, c: 0xf2d5e0 }); // sucker
+  }
+  return out;
+}
+
 // ---------- word → model ----------
 
 const M = {
@@ -492,6 +535,163 @@ const M = {
   KNIVES:    () => wedge({ c: 0xb9c2d4, len: 9, h: 4 }),
   STEAK:     () => loaf({ c: 0xa3432b, h: 3, crust: 0x6b2a1e }),
   BACON:     () => loaf({ c: 0xc4304a, h: 2, crust: 0xe89aa4 }),
+  // ===== expansion 2 shapes =====
+  SALT: () => jar({ c: 0xf6f3ec }),
+  MACE: () => jar({ c: 0xe8843b }),
+  MAYO: () => jar({ c: 0xf6f3ec }),
+  RANCH: () => jar({ c: 0xf2ede0 }),
+  SAUCE: () => jar({ c: 0xd9453a }),
+  SYRUP: () => jar({ c: 0xb3651e, lid: 0xd9a662 }),
+  RELISH: () => jar({ c: 0x6b9b3f }),
+  PESTO: () => jar({ c: 0x5f9b4f }),
+  AIOLI: () => jar({ c: 0xf2e8c0 }),
+  CHUTNEY: () => jar({ c: 0xe8893b }),
+  VINEGAR: () => jar({ c: 0xd9b27a }),
+  TAHINI: () => jar({ c: 0xe8d9b3 }),
+  SRIRACHA: () => jar({ c: 0xd9453a }),
+  MARMALADE: () => jar({ c: 0xe8843b }),
+  MOLASSES: () => jar({ c: 0x4a3320, lid: 0xd9a662 }),
+  TERIYAKI: () => jar({ c: 0x6b4226 }),
+  CUMIN: () => jar({ c: 0xb3793b }),
+  TURMERIC: () => jar({ c: 0xe8b43b }),
+  GOO: () => bowl({ contents: 0x6bb35e, bowlC: 0x707a8c }),
+  GLOOP: () => bowl({ contents: 0x8a4fb3, bowlC: 0x707a8c }),
+  SLIME: () => bowl({ contents: 0x6bd96b, bowlC: 0x3a3f4d }),
+  STEW: () => bowl({ contents: 0x8a5f3b, bits: 0xe8843b }),
+  SALSA: () => bowl({ contents: 0xd9453a, bits: 0x5f9b4f }),
+  HUMMUS: () => bowl({ contents: 0xe8d9b3 }),
+  CURRY: () => bowl({ contents: 0xe8893b, bits: 0x5f9b4f }),
+  BROTH: () => bowl({ contents: 0xd9b27a }),
+  CHILI: () => bowl({ contents: 0xb33b2c, bits: 0xf2c83b }),
+  GUMBO: () => bowl({ contents: 0x8a4326, bits: 0xd9453a }),
+  RAMEN: () => bowl({ contents: 0xe8cf8a, bits: 0xd9453a }),
+  CHOWDER: () => bowl({ contents: 0xe8d9b3, bits: 0xf2c83b }),
+  LENTIL: () => bowl({ contents: 0xc9853b }),
+  MARINARA: () => bowl({ contents: 0xc4304a }),
+  ALFREDO: () => bowl({ contents: 0xf2ede0 }),
+  CARAMEL: () => bowl({ contents: 0xc9853b }),
+  GRAVY: () => bowl({ contents: 0x8a5f3b }),
+  PUNCH: () => cup({ c: 0xd93a6b, drink: 0xe86b9a }),
+  SLUSH: () => cup({ c: 0x5ab2e8, drink: 0x9ad4f0 }),
+  SHAKE: () => cup({ c: 0xe89ac4, drink: 0xf6f3ec }),
+  COCOA: () => cup({ c: 0x8a5a3b, drink: 0x6b4226 }),
+  LATTE: () => cup({ c: 0xc9a25e, drink: 0xf2e8dc }),
+  CIDER: () => cup({ c: 0xc9853b, drink: 0xe8b45e }),
+  MOCHA: () => cup({ c: 0x6b4226, drink: 0xc9a25e }),
+  SUNDAE: () => cup({ c: 0xf2e8dc, drink: 0x6b4226 }),
+  PARFAIT: () => cup({ c: 0xf2e8dc, drink: 0xe89ac4 }),
+  TRIFLE: () => cup({ c: 0xe89ac4, drink: 0xf6f3ec }),
+  BRIE: () => wedge({ c: 0xf2ead9 }),
+  GOUDA: () => wedge({ c: 0xe8b45e }),
+  SWISS: () => wedge({ c: 0xf2dc8a, holes: true }),
+  CHEDDAR: () => wedge({ c: 0xe8843b }),
+  PARMESAN: () => wedge({ c: 0xf2e8c0, holes: true }),
+  STINKY: () => wedge({ c: 0x9bc96b, holes: true }),
+  RICOTTA: () => bowl({ contents: 0xf6f3ec }),
+  OKRA: () => tube({ c: 0x6bb35e, len: 9, r: 1, top: 0x4a7a3a }),
+  CELERY: () => tube({ c: 0x9bc96b, len: 11, r: 1, top: 0x4a7a3a }),
+  SAUSAGE: () => tube({ c: 0xa3543b, len: 11, r: 1, curve: 1 }),
+  SALAMI: () => tube({ c: 0xc4304a, len: 9, r: 2 }),
+  BOLOGNA: () => tube({ c: 0xe89aa4, len: 9, r: 2 }),
+  LOBSTER: () => tube({ c: 0xe8744f, len: 11, r: 1, curve: 2 }),
+  SCALLION: () => tube({ c: 0x6bb35e, len: 11, r: 1, top: 0x4a7a3a }),
+  PLANTAIN: () => tube({ c: 0xe8b43b, len: 11, r: 1, curve: 2 }),
+  PARSNIP: () => tube({ c: 0xe8d9b3, len: 11, r: 2, taper: 2, top: 0x9bc96b }),
+  KEBAB: () => tube({ c: 0xa3543b, len: 11, r: 1 }),
+  GINGER: () => tube({ c: 0xe8c98a, len: 9, r: 1, curve: 1 }),
+  CHIVE: () => tube({ c: 0x5f9b4f, len: 11, r: 1 }),
+  ROSEMARY: () => tube({ c: 0x4a7a3a, len: 11, r: 1 }),
+  ECLAIR: () => tube({ c: 0x6b4226, len: 9, r: 1 }),
+  CANNOLI: () => tube({ c: 0xe8d9b3, len: 9, r: 1 }),
+  SQUID: () => tube({ c: 0xe8d9c0, len: 9, r: 1 }),
+  FRIES: () => tube({ c: 0xf2c84b, len: 11, r: 1 }),
+  BEET: () => sphere({ c: 0xa32b5a, rx: 3, ry: 3, rz: 2, stem: 0x5f9b4f }),
+  GIANT: () => sphere({ c: 0xa3543b, rx: 4, ry: 4, rz: 3 }),
+  SQUASH: () => sphere({ c: 0xe8a83b, rx: 4, ry: 3, rz: 3, stem: 0x5a3a1e }),
+  ORANGE: () => sphere({ c: 0xe8843b, rx: 3, ry: 3, rz: 2 }),
+  APRICOT: () => sphere({ c: 0xe8a83b, rx: 3, ry: 3, rz: 2 }),
+  PAPAYA: () => sphere({ c: 0xe8893b, rx: 4, ry: 3, rz: 2 }),
+  GUAVA: () => sphere({ c: 0xd96b7a, rx: 3, ry: 3, rz: 2 }),
+  GRAPEFRUIT: () => sphere({ c: 0xe86b6b, rx: 4, ry: 3, rz: 3 }),
+  TANGERINE: () => sphere({ c: 0xe8843b, rx: 3, ry: 2, rz: 2 }),
+  DRAGONFRUIT: () => sphere({ c: 0xd93a6b, rx: 3, ry: 3, rz: 2, crown: 0x5f9b4f }),
+  POMELO: () => sphere({ c: 0xe8c98a, rx: 4, ry: 4, rz: 3 }),
+  BRAINS: () => sphere({ c: 0xe89ac4, rx: 4, ry: 3, rz: 3 }),
+  DURIAN: () => sphere({ c: 0xc9a25e, rx: 4, ry: 3, rz: 3, crown: 0x9bc96b }),
+  GUMMY: () => sphere({ c: 0xe8543a, rx: 3, ry: 3, rz: 2 }),
+  BLOB: () => sphere({ c: 0x6bb3d9, rx: 3, ry: 2, rz: 2 }),
+  SNAIL: () => sphere({ c: 0x9b8b6b, rx: 3, ry: 3, rz: 2 }),
+  DATE: () => sphere({ c: 0x8a5f3b, rx: 2, ry: 3, rz: 2 }),
+  PRUNE: () => sphere({ c: 0x4a2a4f, rx: 2, ry: 2, rz: 2 }),
+  WALNUT: () => sphere({ c: 0x8a5f3b, rx: 2, ry: 2, rz: 2 }),
+  NUTMEG: () => sphere({ c: 0x8a5f3b, rx: 2, ry: 2, rz: 2 }),
+  GELATO: () => sphere({ c: 0xf2d5e0, rx: 3, ry: 3, rz: 2 }),
+  SORBET: () => sphere({ c: 0xe86b9a, rx: 3, ry: 3, rz: 2 }),
+  SCALLOP: () => sphere({ c: 0xf2e8dc, rx: 3, ry: 2, rz: 2 }),
+  SCONE: () => sphere({ c: 0xe8c98a, rx: 3, ry: 2, rz: 2 }),
+  BAGEL: () => sphere({ c: 0xd9a662, rx: 3, ry: 2, rz: 2 }),
+  DONUT: () => sphere({ c: 0xe89ac4, rx: 3, ry: 2, rz: 2 }),
+  BUGS: () => cluster({ c: 0x6b9b3f, n: 6 }),
+  ALMOND: () => cluster({ c: 0xc9925e, n: 6 }),
+  PECAN: () => cluster({ c: 0xa3653b, n: 6 }),
+  CASHEW: () => cluster({ c: 0xe8d9b3, n: 6 }),
+  RAISIN: () => cluster({ c: 0x6b4226, n: 7 }),
+  BLACKBERRY: () => cluster({ c: 0x3a2a4f }),
+  LYCHEE: () => cluster({ c: 0xf2dce0, n: 5 }),
+  CHICKPEA: () => cluster({ c: 0xe8d9b3, n: 6 }),
+  GNOCCHI: () => cluster({ c: 0xe8d9b3, n: 6 }),
+  SAFFRON: () => cluster({ c: 0xe8893b, n: 5 }),
+  CARDAMOM: () => cluster({ c: 0x9bc96b, n: 5 }),
+  CORIANDER: () => cluster({ c: 0x9b8b4f, n: 6 }),
+  PEPPERCORN: () => cluster({ c: 0x3a3326, n: 7 }),
+  GIZZARD: () => cluster({ c: 0xc99a6b, n: 5 }),
+  CLOVE: () => cluster({ c: 0x6b4226, n: 5 }),
+  SPROUT: () => cluster({ c: 0x5f9b4f, n: 6 }),
+  PRALINE: () => cluster({ c: 0xc9925e, n: 5 }),
+  BASIL: () => cluster({ c: 0x4f9b3f, n: 6 }),
+  THYME: () => cluster({ c: 0x6b9b4f, n: 6 }),
+  PARSLEY: () => cluster({ c: 0x4f9b3f, n: 6 }),
+  DILL: () => cluster({ c: 0x6bb35e, n: 5 }),
+  SAGE: () => cluster({ c: 0x9bc96b, n: 5 }),
+  WASABI: () => cluster({ c: 0x6bb35e, n: 4 }),
+  FENNEL: () => sphere({ c: 0xd9e8c0, rx: 3, ry: 2, rz: 2, top: null }),
+  SHALLOT: () => sphere({ c: 0xc99a8a, rx: 2, ry: 3, rz: 2, stem: 0x9bc96b }),
+  SPAM: () => loaf({ c: 0xe89aa4, h: 3, crust: 0xd97a8a }),
+  TOFU: () => loaf({ c: 0xf2ede0, h: 4, len: 7 }),
+  JERKY: () => loaf({ c: 0x8a4326, h: 2 }),
+  BRISKET: () => loaf({ c: 0x8a4326, h: 3, crust: 0x6b2a1e }),
+  MYSTERY: () => loaf({ c: 0x9b7a6b, h: 4, crust: 0x6b5f4b }),
+  HAGGIS: () => loaf({ c: 0x6b4226, h: 4, len: 7, crust: 0x4a2f1e }),
+  CRICKET: () => loaf({ c: 0x6b5f3b, h: 2 }),
+  FUDGE: () => loaf({ c: 0x6b4226, h: 3, len: 7 }),
+  TOFFEE: () => loaf({ c: 0xb3793b, h: 2 }),
+  NOUGAT: () => loaf({ c: 0xf2e8c0, h: 3 }),
+  WAFER: () => loaf({ c: 0xe8d9b3, h: 2 }),
+  FETA: () => loaf({ c: 0xf6f3ec, h: 3, len: 7 }),
+  BISCOTTI: () => loaf({ c: 0xc9925e, h: 2 }),
+  NACHOS: () => stack({ c: 0xe8c25a, discs: 3, r: 4, topper: 0x5f9b4f }),
+  WAFFLE: () => stack({ c: 0xdfae55, discs: 2, r: 4 }),
+  MACARON: () => stack({ c: 0xe89ac4, discs: 3, r: 3, topper: 0xf6f3ec }),
+  CREPE: () => stack({ c: 0xe8d9b3, discs: 2, r: 4 }),
+  PEPPERONI: () => stack({ c: 0xc4304a, discs: 3, r: 3, topper: 0xe89aa4 }),
+  QUICHE: () => tiers({ base: 0xe8c25a, frosting: 0xf2dc8a, levels: [[5, 2]], cherry: false }),
+  COBBLER: () => tiers({ base: 0xe8a83b, frosting: 0xe8c25a, levels: [[5, 2]], cherry: true }),
+  TURNOVER: () => tiers({ base: 0xe8b45e, frosting: 0xf2dc8a, levels: [[4, 2]], cherry: false }),
+  STRUDEL: () => loaf({ c: 0xe8b45e, h: 3, crust: 0xc9853b }),
+  CALZONE: () => tiers({ base: 0xe8b45e, frosting: 0xd9a662, levels: [[4, 3]], cherry: false }),
+  PANINI: () => layers({ list: [[0xd9a662, 1], [0x5f9b4f, 1], [0xd9453a, 1], [0xd9a662, 1]] }),
+  RAVIOLI: () => layers({ list: [[0xe8d9b3, 1], [0x5f9b4f, 1], [0xe8d9b3, 1]], len: 7 }),
+  GYRO: () => tube({ c: 0xd9b27a, len: 9, r: 1 }),
+  WINGS: () => drumstick({ c: 0xd9743b }),
+  FROG: () => drumstick({ c: 0x6bb35e }),
+  TONGUE: () => loaf({ c: 0xd96b7a, h: 2 }),
+  ROLLS: () => tube({ c: 0xe8d9b3, len: 7, r: 1 }),
+  WORMS: () => worm({ c: 0xe86b9a }),
+  EYEBALL: () => eyeball({ iris: 0x5ab2e8 }),
+  TENTACLE: () => tentacle({ c: 0xc4306b }),
+  OCTOPUS: () => tentacle({ c: 0x9a5fb3 }),
+  CHERRY: () => cluster({ c: 0xc4304a, n: 4 }),
+  CHERRIES: () => cluster({ c: 0xc4304a, n: 5 }),
 };
 
 /** Build the voxel model for a word; falls back to a loaf in the dish colour. */

@@ -58,6 +58,16 @@ a built-in growth path from controller to keyboard.
 
 ---
 
+## Players (3 save profiles)
+
+The game boots to a **CHOOSE YOUR PLAYER** screen with three independent save
+slots, so up to three kids (e.g. siblings) each keep their own chef, grade,
+day count, knife trust, recipe book and settings — nothing is shared between
+them. Pick a slot with the d-pad and press **A** to play; an empty slot starts
+a fresh chef. **Y** renames a slot (cycles fun preset names), and **Select**
+erases one (with a confirm). Switch players any time from the title screen with
+**Y**. A pre-existing single save is automatically migrated into Player 1.
+
 ## Grade levels (Alberta curriculum aligned)
 
 Pick **Kindergarten–Grade 6** with the d-pad on the title screen. Word banks follow the
@@ -130,7 +140,7 @@ breathing-paced stroke. During spelling the dish name is deliberately hidden —
 
 **The Recipe Book** (B on the title screen) collects every word ever spelled
 first-try as a mastered recipe stamp, grade by grade — locked recipes show as
-mystery cards to hunt down. 170+ food words across the seven grade bands.
+mystery cards to hunt down. **330+ food words** across the seven grade bands — meals, fruits and veg, plus condiments, spices, sauces, cheeses, and a pile of weird-and-funny cuttables (gummy WORMS, candy EYEBALLs, jiggly BRAINS, a giant GUMMY bear, stinky DURIAN, even a wiggly TENTACLE).
 
 The final order is announced as **"LAST ORDER OF THE NIGHT"** — a built-in
 transition warning for kids who struggle to stop a preferred activity.

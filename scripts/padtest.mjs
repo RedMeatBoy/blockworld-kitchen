@@ -60,7 +60,7 @@ async function freshTitle(page) {
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: 'load' });
-  await textVisible(page, 'BLOCKWORLD');
+  await textVisible(page, 'CHOOSE YOUR');
 }
 
 try {
@@ -75,9 +75,11 @@ try {
   await injectPad(page, { mapping: 'standard' });
   await wait(300);
 
+  await padPress(page, 0); // pick player 1 → title
+  await textVisible(page, 'BLOCKWORLD');
   await padPress(page, 15); // dpad right
   await textVisible(page, 'GRADE 3');
-  console.log('✓ standard: d-pad button changes grade');
+  console.log('✓ standard: profile select + d-pad grade');
 
   await padPress(page, 2); // X
   await textVisible(page, 'CHEF MAYA');
@@ -94,9 +96,11 @@ try {
   await injectPad(page, { mapping: '' });
   await wait(300);
 
+  await padPress(page, 0); // pick player 1 → title
+  await textVisible(page, 'BLOCKWORLD');
   await padHat(page, -0.42857142857142855); // hat → right
   await textVisible(page, 'GRADE 3');
-  console.log('✓ bluetooth: hat-axis d-pad changes grade');
+  console.log('✓ bluetooth: profile select + hat-axis grade');
 
   await padPress(page, 3); // X in the BT layout
   await textVisible(page, 'CHEF MAYA');
